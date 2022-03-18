@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/LLFakePlayer/Resource/vftable_ServerPlayer.txt
+/LLFakePlayer/Resource/vftable_SimulatedPlayer.txt

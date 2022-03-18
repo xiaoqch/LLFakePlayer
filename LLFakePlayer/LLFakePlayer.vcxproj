@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{7b626edb-3b53-4117-a5e2-19b4c02f1186}</ProjectGuid>
+    <RootNamespace>LLFakePlayer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)\LLFakePlayer\;$(SolutionDir)\LLFakePlayer\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <ExternalIncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)\LLFakePlayer\;$(SolutionDir)\LLFakePlayer\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <ExternalIncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;_ADM64_;_AMD64_;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <ExternalWarningLevel>Level1</ExternalWarningLevel>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <DelayLoadDLLs>bedrock_server.dll</DelayLoadDLLs>
+    </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(LocalDebuggerWorkingDirectory)plugins\" (
+copy /Y "$(TargetPath)" "$(LocalDebuggerWorkingDirectory)plugins"
+)</Command>
+      <Message>复制插件到本地调试bds目录的插件目录下</Message>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>if not exist "$(SolutionDir)LiteLoaderSDK\Lib\bedrock_server_api.lib" goto process
+if not exist "$(SolutionDir)LiteLoaderSDK\Lib\bedrock_server_var.lib" goto process
+goto end
+
+:process
+cd /d "$(SolutionDir)\LiteLoaderSDK\Tools\"
+if exist "$(LocalDebuggerWorkingDirectory)\bedrock_server.pdb" (
+LibraryBuilder.exe -o ..\Lib\ "$(LocalDebuggerWorkingDirectory)"
+) else (
+LibraryBuilder.exe -o ..\Lib\
+)
+
+:end
+			</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>DEBUG;_WINDOWS;_USRDLL;_ADM64_;_AMD64_;NOMINMAX;PLUGIN_DEV_MODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <ExternalWarningLevel>Level1</ExternalWarningLevel>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <DelayLoadDLLs>bedrock_server.dll</DelayLoadDLLs>
+    </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(LocalDebuggerWorkingDirectory)plugins\" (
+copy /Y "$(TargetPath)" "$(LocalDebuggerWorkingDirectory)plugins"
+)</Command>
+      <Message>复制插件到本地调试bds目录的插件目录下</Message>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>if not exist "$(SolutionDir)LiteLoaderSDK\Lib\bedrock_server_api.lib" goto process
+if not exist "$(SolutionDir)LiteLoaderSDK\Lib\bedrock_server_var.lib" goto process
+goto end
+
+:process
+cd /d "$(SolutionDir)\LiteLoaderSDK\Tools\"
+if exist "$(LocalDebuggerWorkingDirectory)\bedrock_server.pdb" (
+LibraryBuilder.exe -o ..\Lib\ "$(LocalDebuggerWorkingDirectory)"
+) else (
+LibraryBuilder.exe -o ..\Lib\
+)
+
+:end
+			</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Library Include="..\LiteLoaderSDK\Lib\bedrock_server_api.lib" />
+    <Library Include="..\LiteLoaderSDK\Lib\bedrock_server_var.lib" />
+    <Library Include="..\LiteLoaderSDK\Lib\Chakra.lib" />
+    <Library Include="..\LiteLoaderSDK\Lib\LiteLoader.lib" />
+    <Library Include="..\LiteLoaderSDK\Lib\SymDBHelper.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main\Config.cpp" />
+    <ClCompile Include="Main\dllmain.cpp" />
+    <ClCompile Include="Main\FakePlayerCommand.cpp" />
+    <ClCompile Include="Main\FakePlayerManager.cpp" />
+    <ClCompile Include="Main\LLFakePlayer.cpp" />
+    <ClCompile Include="Main\PacketHelper.cpp" />
+    <ClCompile Include="Main\SimulatedPlayerHelper.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Utils\ColorHelper.cpp" />
+    <ClCompile Include="Utils\MyPackets.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header\FakePlayerManager.h" />
+    <ClInclude Include="Header\SimulatedPlayerHelper.h" />
+    <ClInclude Include="Main\Config.h" />
+    <ClInclude Include="Main\FakePlayerCommand.h" />
+    <ClInclude Include="Main\framework.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Resource\resource.h" />
+    <ClInclude Include="Utils\ColorHelper.h" />
+    <ClInclude Include="Utils\DebugHelper.h" />
+    <ClInclude Include="Utils\DlsymStatic.h" />
+    <ClInclude Include="Utils\MyPackets.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Resource\vftable_ServerPlayer.txt" />
+    <Text Include="Resource\vftable_SimulatedPlayer.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resource\LLFakePlayer.aps" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource\LLFakePlayer.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
