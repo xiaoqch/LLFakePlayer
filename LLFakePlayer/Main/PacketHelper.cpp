@@ -464,7 +464,7 @@ void trySetOldY(SimulatedPlayer& sp, float y)
         uintptr_t offsetOldY = ([](SimulatedPlayer& sp, float oldY) -> uintptr_t {
             constexpr uintptr_t defaultOffset = 9408;
             if (oldY == dAccess<float>(&sp, defaultOffset))
-                return 9408;
+                return 9424;
             for (uintptr_t off = 1; off < 20; ++off)
             {
                 if (oldY == dAccess<float>(&sp, defaultOffset + off * 4))
@@ -596,7 +596,8 @@ TClasslessInstanceHook(void, "?sendActorEquippedArmor@ActorEventCoordinator@@QEA
 // 8936  bool mLoading - ServerPlayer::isPlayerInitialized
 // 8938  bool mLocalPlayerInitialized - ServerPlayer::setLocalPlayerAsInitialized
 // 8488  NetworkChunkPublisher
-
+// ServerPlayer::isPlayerInitialized = *(_BYTE *)(this + 3945) && !*(_BYTE *)(this + 8952) && !*(_DWORD *)(this + 2236) && *(_BYTE *)(this + 8954)
+// ServerPlayer::isPlayerInitialized = mIsInitialSpawnDone? && mLoading && mDimensionState !=0 && mLocalPlayerInitialized
 std::string getPlayerStateString(Player* player)
 {
     std::string str = "\r";

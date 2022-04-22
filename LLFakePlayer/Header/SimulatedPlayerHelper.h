@@ -2,6 +2,7 @@
 #include <MC/SimulatedPlayer.hpp>
 
 #include <MC/ServerNetworkHandler.hpp>
+#include <MC/Level.hpp>
 #include <MC/StackResultStorageEntity.hpp>
 #include <MC/OwnerStorageEntity.hpp>
 namespace SimulatedPlayerHelper
@@ -55,11 +56,11 @@ public:
     // inline bool isValid()
 };
 
-inline void addUser(Level* level, class OwnerPtrT<struct EntityRefTraits> a0)
+inline void addUser(Level& level, class OwnerPtrT<struct EntityRefTraits> a0)
 {
-    void (Level::*rv)(class OwnerPtrT<struct EntityRefTraits>);
+    void (Level::*rv)(class OwnerPtrT<struct EntityRefTraits>) = nullptr;
     *((void**)&rv) = dlsym("?addUser@Level@@UEAAXV?$OwnerPtrT@UEntityRefTraits@@@@@Z");
-    return (level->*rv)(std::forward<class OwnerPtrT<struct EntityRefTraits>>(a0));
+    return (level.*rv)(std::forward<class OwnerPtrT<struct EntityRefTraits>>(a0));
 }
 
 namespace SimulatedPlayerHelper
@@ -67,7 +68,7 @@ namespace SimulatedPlayerHelper
 // Rewrite SimulatedPlayer::create(std::string const & name,class BlockPos const & bpos,class AutomaticID<class Dimension,int> dimId,class ServerNetworkHandler & handler)
 inline SimulatedPlayer* create(std::string const& name)
 {
-    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name);
+    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0);
     auto player = ownerPtr.tryGetSimulatedPlayer();
 
     if (player /* && player->isSimulatedPlayer() */)
@@ -75,7 +76,7 @@ inline SimulatedPlayer* create(std::string const& name)
         // dAccess<AutomaticID<Dimension, int>>(player, 57) = dimId;
         player->postLoad(/* isNewPlayer */ false);
         Level& level = player->getLevel();
-        addUser(&level, std::move(ownerPtr));
+        addUser(level, std::move(ownerPtr));
         // auto pos = bpos.bottomCenter();
         // pos.y = pos.y + 1.62001;
         // player->setPos(pos);

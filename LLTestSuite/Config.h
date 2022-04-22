@@ -1,11 +1,11 @@
-#pragma once
-
+﻿#pragma once
 
 #include <LoggerAPI.h>
 #include <third-party/magic_enum/magic_enum.hpp>
+
 // Global Info
-#define TARGET_BDS_VERSION "1.18.30.04"
-#define TARGET_LITELOADER_VERSION "2.2.0"
+#define TARGET_BDS_VERSION "1.18.11.01"
+#define TARGET_LITELOADER_VERSION "2.1.3"
 #define GITHUB_LINK "https://github.com/xiaoqch/LL_Plugins/"
 
 // Path
@@ -25,22 +25,13 @@
 extern Logger logger;
 
 // Plugin Info
-#define PLUGIN_NAME "LLFakePlayer"
+#define PLUGIN_NAME "LLTestSuite"
 #define PLUGIN_AUTHOR "xiaoqch"
-#define PLUGIN_DISPLAY_NAME "Fake Player For LiteLoader-Test"
-#define PLUGIN_DESCRIPTION "Fake Player For LiteLoader-Test"
+#define PLUGIN_DISPLAY_NAME "LLTestSuite"
+#define PLUGIN_DESCRIPTION "LiteLoader Test Suite"
 #define PLUGIN_WEBSIDE GITHUB_LINK PLUGIN_NAME
 #define PLUGIN_LICENCE "GPLv3"
-#define PLUGIN_USAGE R"(
-llfakeplayer help - Show this message
-llfakeplayer create - Create new fake player
-llfakeplayer remove - Remove a fake player forever
-llfakeplayer list - List all fake player
-llfakeplayer login - Login a existing fake player
-llfakeplayer logout - Logout a existing fake player
-llfakeplayer import - Import data from ddf8196's FakePlayer Client
-llfakeplayer gui - Show fake player manage gui
-)"
+#define PLUGIN_USAGE false
 
 // Version
 #define PLUGIN_VERSION_MAJOR 0
@@ -57,16 +48,15 @@ llfakeplayer gui - Show fake player manage gui
 #define PLUGIN_DIR PLUGINS_DIR PLUGIN_NAME "/"
 #define PLUGIN_LOG_PATH LOG_DIR PLUGIN_NAME ".log"
 #define PLUGIN_CONFIG_PATH PLUGIN_DIR "config.json"
-#define PLUGIN_DATA_PATH PLUGIN_DIR "leveldb/"
+#define PLUGIN_DATA_PATH PLUGIN_DIR PLUGIN_NAME ".json"
 
 // Switch
-#define ENABLE_LOG_FILE true
-#define ENABLE_CONFIG true
+#define ENABLE_LOG_FILE false
+#define ENABLE_CONFIG false
 
 namespace Config
 {
-static std::string CommandAlias = "fp";
-static unsigned int ChunkRadius = 9;
+//static bool test = true;
 
 bool saveConfig();
 bool initConfig();

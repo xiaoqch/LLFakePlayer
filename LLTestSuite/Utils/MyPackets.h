@@ -158,7 +158,7 @@ public:
 };
 
 // CraftingEventPacket
-static_assert(sizeof(NetworkItemStackDescriptor) == 152);
+static_assert(sizeof(NetworkItemStackDescriptor) == 128);
 
 class CraftingEventPacket : public Packet
 {

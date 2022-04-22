@@ -31,9 +31,6 @@
     <Library Include="..\LiteLoaderSDK\Lib\bedrock_server_var.lib">
       <Filter>Lib</Filter>
     </Library>
-    <Library Include="..\LiteLoaderSDK\Lib\Chakra.lib">
-      <Filter>Lib</Filter>
-    </Library>
     <Library Include="..\LiteLoaderSDK\Lib\LiteLoader.lib">
       <Filter>Lib</Filter>
     </Library>

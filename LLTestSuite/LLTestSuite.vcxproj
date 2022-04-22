@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{7b626edb-3b53-4117-a5e2-19b4c02f1186}</ProjectGuid>
-    <RootNamespace>LLFakePlayer</RootNamespace>
+    <ProjectGuid>{d83f40e0-1514-42ef-acd1-2a69edab63c3}</ProjectGuid>
+    <RootNamespace>LLTestSuite</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -46,16 +46,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\LLFakePlayer\;$(SolutionDir)\LLFakePlayer\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
-    <ExternalIncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
+    <IncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <ExternalIncludePath>$(SolutionDir)\LLFakePlayer\Header;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\LLFakePlayer\;$(SolutionDir)\LLFakePlayer\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ExternalIncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
+    <IncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <ExternalIncludePath>$(SolutionDir)\LLFakePlayer\Header;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -63,18 +60,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;_ADM64_;_AMD64_;NOMINMAX;LLFAKEPLAYER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;_ADM64_;_AMD64_;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <ExceptionHandling>Async</ExceptionHandling>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <ExternalWarningLevel>Level1</ExternalWarningLevel>
-      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
-      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,18 +107,15 @@ LibraryBuilder.exe -o ..\Lib\
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>DEBUG;_WINDOWS;_USRDLL;_ADM64_;_AMD64_;NOMINMAX;LLFAKEPLAYER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;_WINDOWS;_USRDLL;_ADM64_;_AMD64_;NOMINMAX;PLUGIN_DEV_MODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
       <ExceptionHandling>Async</ExceptionHandling>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <ExternalWarningLevel>Level1</ExternalWarningLevel>
-      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
-      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,48 +149,36 @@ LibraryBuilder.exe -o ..\Lib\
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="TestCommand.h" />
+    <ClInclude Include="TestTools.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TestCommand.cpp" />
+    <ClCompile Include="TestPlayerAPI.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LLTestSuite.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <Library Include="..\LiteLoaderSDK\Lib\bedrock_server_api.lib" />
     <Library Include="..\LiteLoaderSDK\Lib\bedrock_server_var.lib" />
     <Library Include="..\LiteLoaderSDK\Lib\LiteLoader.lib" />
     <Library Include="..\LiteLoaderSDK\Lib\SymDBHelper.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Main\Config.cpp" />
-    <ClCompile Include="Main\dllmain.cpp" />
-    <ClCompile Include="Main\FakePlayerCommand.cpp" />
-    <ClCompile Include="Main\FakePlayerManager.cpp" />
-    <ClCompile Include="Main\LLFakePlayer.cpp" />
-    <ClCompile Include="Main\PacketHelper.cpp" />
-    <ClCompile Include="Main\SimulatedPlayerHelper.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Utils\ColorHelper.cpp" />
-    <ClCompile Include="Utils\MyPackets.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Header\FakePlayerManager.h" />
-    <ClInclude Include="Header\SimulatedPlayerHelper.h" />
-    <ClInclude Include="Main\Config.h" />
-    <ClInclude Include="Main\FakePlayerCommand.h" />
-    <ClInclude Include="Main\framework.h" />
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="Resource\resource.h" />
-    <ClInclude Include="Utils\ColorHelper.h" />
-    <ClInclude Include="Utils\DebugHelper.h" />
-    <ClInclude Include="Utils\DlsymStatic.h" />
-    <ClInclude Include="Utils\MyPackets.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Resource\vftable_ServerPlayer.txt" />
-    <Text Include="Resource\vftable_SimulatedPlayer.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resource\LLFakePlayer.aps" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Resource\LLFakePlayer.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

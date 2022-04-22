@@ -8,7 +8,15 @@
 #include "Utils/ColorHelper.h"
 #include <functional>
 #include <KVDBAPI.h>
+
 #define FPPUBLIC public
+#ifdef LLFAKEPLAYER_EXPORTS
+#define FPAPI __declspec(dllexport)
+#else
+#define FPAPI __declspec(dllimport)
+#endif
+
+
 namespace JAVA
 {
 mce::UUID nameUUIDFromBytes(std::string const& name);
@@ -79,17 +87,17 @@ FPPUBLIC:
     static unsigned char getNextClientSubID();
 
 public:
-    FakePlayer(std::string const& realName, mce::UUID uuid, time_t lastOnlineTime = 0, bool autoLogin = false, FakePlayerManager* manager = nullptr);
-    ~FakePlayer();
-    static std::shared_ptr<FakePlayer> deserialize(CompoundTag const& tag, FakePlayerManager* manager = nullptr);
-    std::unique_ptr<CompoundTag> serialize() const;
+    FPAPI FakePlayer(std::string const& realName, mce::UUID uuid, time_t lastOnlineTime = 0, bool autoLogin = false, FakePlayerManager* manager = nullptr);
+    FPAPI ~FakePlayer();
+    FPAPI static std::shared_ptr<FakePlayer> deserialize(CompoundTag const& tag, FakePlayerManager* manager = nullptr);
+    FPAPI std::unique_ptr<CompoundTag> serialize() const;
 
-    bool login();
-    bool logout(bool save = true);
-    mce::UUID const& getUUID() const;
-    std::string getUUIDString() const;
-    std::string getServerId() const;
-    std::string getStorageId() const;
+    FPAPI bool login();
+    FPAPI bool logout(bool save = true);
+    FPAPI mce::UUID const& getUUID() const;
+    FPAPI std::string getUUIDString() const;
+    FPAPI std::string getServerId() const;
+    FPAPI std::string getStorageId() const;
     inline unsigned char getClientSubId() const
     {
         return mClientSubID;
@@ -104,9 +112,9 @@ public:
         return mOnline;
     }
 
-    std::unique_ptr<CompoundTag> getPlayerTag() const;
-    std::unique_ptr<CompoundTag> getStoragePlayerTag() const;
-    std::unique_ptr<CompoundTag> getOnlinePlayerTag() const;
+    FPAPI std::unique_ptr<CompoundTag> getPlayerTag() const;
+    FPAPI std::unique_ptr<CompoundTag> getStoragePlayerTag() const;
+    FPAPI std::unique_ptr<CompoundTag> getOnlinePlayerTag() const;
 };
 
 class FakePlayerManager
@@ -119,18 +127,18 @@ public:
     std::vector<std::string> mSortedNames;
 
 private:
-    FakePlayerManager(std::string const& dbPath);
-    ~FakePlayerManager();
+    FPAPI FakePlayerManager(std::string const& dbPath);
+    FPAPI ~FakePlayerManager();
     FakePlayerManager(const FakePlayerManager&) = delete;
     FakePlayerManager& operator=(const FakePlayerManager&) = delete;
 
 public:
     void initFakePlayers();
-    bool savePlayers(bool onlineOnly = false);
-    bool saveData(mce::UUID uuid);
-    bool saveData(FakePlayer const& fakePlayer);
-    bool saveData(SimulatedPlayer const& simulatedPlayer);
-    bool importData_DDF(std::string const& name);
+    FPAPI bool savePlayers(bool onlineOnly = false);
+    FPAPI bool saveData(mce::UUID uuid);
+    FPAPI bool saveData(FakePlayer const& fakePlayer);
+    FPAPI bool saveData(SimulatedPlayer const& simulatedPlayer);
+    FPAPI bool importData_DDF(std::string const& name);
     friend class FakePlayer;
     friend class SimulatedPlayer;
 
@@ -139,7 +147,7 @@ public:
     {
         return mSortedNames;
     }
-    static FakePlayerManager& getManager();
+    FPAPI static FakePlayerManager& getManager();
     inline void forEachFakePlayer(std::function<void(std::string_view name, FakePlayer const& fakePlayer)> callback) const
     {
         for (auto& [name, fakePlayer] : mMapByName)
@@ -158,10 +166,10 @@ public:
         });
         return list;
     }
-    FakePlayer* create(std::string const& name, std::unique_ptr<CompoundTag> playerData = {});
-    bool remove(std::string const& name);
-    SimulatedPlayer* login(std::string const& name) const;
-    bool logout(FakePlayer& fakePlayer) const;
+    FPAPI FakePlayer* create(std::string const& name, std::unique_ptr<CompoundTag> playerData = {});
+    FPAPI bool remove(std::string const& name);
+    FPAPI SimulatedPlayer* login(std::string const& name) const;
+    FPAPI bool logout(FakePlayer& fakePlayer) const;
     // bool logout(std::string const& name) const;
     // bool logout(mce::UUID const& uuid) const;
     // bool logout(SimulatedPlayer const& simulatedPlayer) const;
