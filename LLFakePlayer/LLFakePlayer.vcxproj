@@ -190,6 +190,7 @@ LibraryBuilder.exe -o ..\Lib\
     <ClInclude Include="Utils\DebugHelper.h" />
     <ClInclude Include="Utils\DlsymStatic.h" />
     <ClInclude Include="Utils\MyPackets.h" />
+    <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resource\vftable_ServerPlayer.txt" />

@@ -1,6 +1,7 @@
 // dllmain.cpp : 定义 DLL 应用程序的入口点。
 #include "pch.h"
 #include "Config.h"
+#include <ServerAPI.h>
 
 Logger logger(PLUGIN_NAME);
 
@@ -13,19 +14,19 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     switch (ul_reason_for_call)
     {
         case DLL_PROCESS_ATTACH:
-            LL::registerPlugin(PLUGIN_NAME, PLUGIN_DESCRIPTION,
-                               LL::Version(
-                                   PLUGIN_VERSION_MAJOR,
-                                   PLUGIN_VERSION_MINOR,
-                                   PLUGIN_VERSION_REVISION,
-                                   PLUGIN_VERSION_IS_BETA ? LL::Version::Beta : LL::Version::Release),
-                               {
-                                   {"Git", PLUGIN_WEBSIDE},
-                                   {"License", PLUGIN_LICENCE},
-                                   {"Website", PLUGIN_WEBSIDE},
-                                   {"Target LL Version: ", TARGET_LITELOADER_VERSION},
-                                   {"Target BDS Version: ", TARGET_BDS_VERSION},
-                               });
+            LL::registerPlugin(
+                PLUGIN_NAME,
+                PLUGIN_INTRODUCTION,
+                LL::Version(PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR, PLUGIN_VERSION_REVISION, PLUGIN_LLVERSION_STATUS),
+                std::map<std::string, std::string>{
+#ifdef PLUGIN_AUTHOR
+                    {"Author", PLUGIN_AUTHOR},
+#endif // PLUGIN_AUTHOR
+                    {"Git", PLUGIN_WEBSIDE},
+                    {"License", PLUGIN_LICENCE},
+                    {"Website", PLUGIN_WEBSIDE},
+                    {"Target BDS Version: ", TO_VERSION_STRING(TARGET_BDS_VERSION)},
+                });
             break;
         case DLL_THREAD_ATTACH:
         case DLL_THREAD_DETACH:
@@ -45,11 +46,22 @@ _declspec(dllexport) void onPostInit()
 #else
     // Set global SEH-Exception handler
     _set_se_translator(seh_exception::TranslateSEHtoCE);
+#ifdef TARGET_BDS_PROTOCOL_VERSION
+    auto currentProtocol = LL::getServerProtocolVersion();
+    if (currentProtocol != TARGET_BDS_PROTOCOL_VERSION)
+    {
+        auto msg = fmt::format("Protocol version not match, target version: {}, current version: {}.\n",
+                        TARGET_BDS_PROTOCOL_VERSION, currentProtocol);
+        msg += fmt::format("please use the " PLUGIN_NAME " that matches the BDS version");
+        throw std::exception(msg.c_str());
+    }
+#endif // TARGET_BDS_PROTOCOL_VERSION
+
 #endif // DEBUG
     if constexpr (ENABLE_CONFIG)
         Config::initConfig();
     entry();
-    logger.info("{} Loaded, Version: {}, Author: {}", PLUGIN_DISPLAY_NAME, PLUGIN_VERSION_STRING, PLUGIN_AUTHOR);
+    logger.info("{} Loaded, Version: {}, Author: {}", PLUGIN_NAME, PLUGIN_VERSION_STRING, PLUGIN_AUTHOR);
     if constexpr (PLUGIN_USAGE)
         logger.info("Usage: \n{}", PLUGIN_USAGE);
     if constexpr (ENABLE_LOG_FILE)

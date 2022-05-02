@@ -39,7 +39,7 @@ void debugLogNbt(CompoundTag const& tag)
 void logPlayerInfo(Player* player)
 {
     DEBUGW("FakePlayer: {}", player->getNameTag());
-    DEBUGW("Dimension: {}, Position: ({})", (int)player->getDimensionId(), ((Vec3&)player->getStateVector()).toString());
+    DEBUGW("Dimension: {}, Position: ({})", (int)player->getDimensionId(), player->getPosition().toString());
     auto tag = player->getNbt();
     for (auto& [k, v] : *tag)
     {
@@ -567,10 +567,9 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
         uuid = fp->getUUID();
         subId = fp->getClientSubId();
     }
-    else
-    {
+    else if (Config::DebugMode)
         logger.warn("Unknown SimulatedPlayer creation detected, it is recommended to create an SimulatedPlayer through FakePlayerManager");
-    }
+    
 
     DEBUGW("SimulatedPlayer(level, sender, handler, blobCache, gameType = {}, nid, subId = {}, func, uuid = {}, clientId = {}, cert, unk_int = {}, unk_bool = {}, entity)",
            (int)gameType, (int)subId, uuid.asString(), clientId, unk_int, unk_bool);
@@ -604,7 +603,7 @@ THook(std::unique_ptr<CompoundTag>&, "?loadServerPlayerData@LevelStorage@@QEAA?A
         // ASSERT(!rtn);
         if (rtn)
         {
-            logger.warn("Nbt for SimulatedPlayer is not empty");
+            logger.debug("Nbt for SimulatedPlayer is not empty");
 #ifdef DEBUG
             debugLogNbt(*rtn);
 #endif // DEBUG

@@ -54,6 +54,7 @@ std::string serialize()
 
     SerializeVaule(CommandAlias);
     SerializeVaule(ChunkRadius);
+    SerializeVaule(DebugMode);
 
     return json.dump(4);
 }
@@ -65,6 +66,7 @@ bool deserialize(std::string const& jsonStr)
 
     DeserializeVaule(CommandAlias);
     DeserializeVaule(ChunkRadius);
+    DeserializeVaule(DebugMode);
 
     return !needUpdate;
 }

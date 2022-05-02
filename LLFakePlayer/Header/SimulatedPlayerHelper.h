@@ -71,10 +71,10 @@ inline SimulatedPlayer* create(std::string const& name)
     OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0);
     auto player = ownerPtr.tryGetSimulatedPlayer();
 
-    if (player /* && player->isSimulatedPlayer() */)
+    if (player /* && player->isSimulated() */)
     {
         // dAccess<AutomaticID<Dimension, int>>(player, 57) = dimId;
-        player->postLoad(/* isNewPlayer */ false);
+        player->postLoad(/* isNewPlayer */ true);
         Level& level = player->getLevel();
         addUser(level, std::move(ownerPtr));
         // auto pos = bpos.bottomCenter();

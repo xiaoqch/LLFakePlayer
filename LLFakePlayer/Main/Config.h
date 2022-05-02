@@ -1,12 +1,10 @@
 #pragma once
-
+#include "../Version.h"
 
 #include <LoggerAPI.h>
 #include <third-party/magic_enum/magic_enum.hpp>
 // Global Info
-#define TARGET_BDS_VERSION "1.18.30.04"
-#define TARGET_LITELOADER_VERSION "2.2.0"
-#define GITHUB_LINK "https://github.com/xiaoqch/LL_Plugins/"
+#define GITHUB_LINK "https://github.com/xiaoqch/"
 
 // Path
 #define LOG_DIR "./logs/"
@@ -25,10 +23,6 @@
 extern Logger logger;
 
 // Plugin Info
-#define PLUGIN_NAME "LLFakePlayer"
-#define PLUGIN_AUTHOR "xiaoqch"
-#define PLUGIN_DISPLAY_NAME "Fake Player For LiteLoader-Test"
-#define PLUGIN_DESCRIPTION "Fake Player For LiteLoader-Test"
 #define PLUGIN_WEBSIDE GITHUB_LINK PLUGIN_NAME
 #define PLUGIN_LICENCE "GPLv3"
 #define PLUGIN_USAGE R"(
@@ -42,16 +36,6 @@ llfakeplayer import - Import data from ddf8196's FakePlayer Client
 llfakeplayer gui - Show fake player manage gui
 )"
 
-// Version
-#define PLUGIN_VERSION_MAJOR 0
-#define PLUGIN_VERSION_MINOR 0
-#define PLUGIN_VERSION_REVISION 1
-#define PLUGIN_VERSION_IS_BETA true
-
-#ifdef DEBUG
-#undef PLUGIN_VERSION_IS_BETA
-#define PLUGIN_VERSION_IS_BETA true
-#endif // DEBUG
 
 // Path
 #define PLUGIN_DIR PLUGINS_DIR PLUGIN_NAME "/"
@@ -65,8 +49,9 @@ llfakeplayer gui - Show fake player manage gui
 
 namespace Config
 {
-static std::string CommandAlias = "fp";
-static unsigned int ChunkRadius = 9;
+inline std::string CommandAlias = "fp";
+inline unsigned int ChunkRadius = 9;
+inline bool DebugMode = false;
 
 bool saveConfig();
 bool initConfig();
