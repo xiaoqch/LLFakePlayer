@@ -78,6 +78,8 @@ bool saveConfig()
 
 bool initConfig()
 {
+    int a = 0;
+    delete &a;
     bool needToSave = false;
     auto jsonStr = ReadAllFile(PLUGIN_CONFIG_PATH);
     if (jsonStr.has_value())
@@ -106,15 +108,3 @@ bool initConfig()
 } // namespace Config
 
 #pragma endregion
-
-#if PLUGIN_VERSION_IS_BETA
-void logBetaInfo()
-{
-    logger.warn("beta version, log info:");
-    LOG_VAR(PLUGIN_NAME);
-    if (ENABLE_LOG_FILE)
-        LOG_VAR(PLUGIN_LOG_PATH);
-    if (ENABLE_CONFIG)
-        LOG_VAR(PLUGIN_CONFIG_PATH);
-}
-#endif // PLUGIN_VERSION_IS_BETA

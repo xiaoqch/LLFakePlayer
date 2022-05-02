@@ -346,10 +346,10 @@ TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacke
                             InventorySlotPacket packet(ctn, slot, item);
                             return FakeClient::handlePacket((SimulatedPlayer*)sp, &packet);
                         }
+#ifdef DEBUG
                         else
-                        {
                             __debugbreak();
-                        }
+#endif // DEBUG
                     });
             }
             return;
@@ -419,7 +419,9 @@ TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@
         catch (const std::exception&)
         {
             logger.error("Failed to get player's client sub id from NetworkIdentifier");
+#ifdef DEBUG
             __debugbreak();
+#endif // DEBUG
         }
     }
 
@@ -439,7 +441,7 @@ TInstanceHook(void, "?tickWorld@Player@@UEAAXAEBUTick@@@Z",
     {
         // Force to call the implementation of ServerPlayer
         SymCallStatic("?_updateChunkPublisherView@ServerPlayer@@MEAAXAEBVVec3@@M@Z",
-                      void, ServerPlayer*, Vec3 const&, float)((ServerPlayer*)this, getPos(), 16.0f);
+                      void, ServerPlayer*, Vec3 const&, float)((ServerPlayer*)this, getPosition(), 16.0f);
     }
 }
 
@@ -483,9 +485,10 @@ void trySetOldY(SimulatedPlayer& sp, float y)
                     return defaultOffset - off * 4;
             }
 #endif // DEBUG
-
             logger.error("Error in fix simulated player teleport fall damage, the offset was changed and the automatic offset detection failed");
+#ifdef DEBUG
             __debugbreak();
+#endif // DEBUG
             return 0;
         })(sp, sp.getPosOld().y);
     if (offsetOldY)
@@ -498,7 +501,7 @@ TInstanceHook(void, "?teleportTo@Player@@UEAAXAEBVVec3@@_NHH@Z",
 {
     if (isFakePlayer(*this))
     {
-#ifdef DEBUG
+#ifdef DEBUG__
         auto& vs = *(voids<1200>*)this;
         LOG_VAR(getPos().toString());
         DEBUGL("Player({})::teleportTo({}, {}, {}, {})", this->getNameTag(), pos.toString(), shouldStopRiding, cause, sourceEntityType);

@@ -40,8 +40,7 @@ extern "C" {
 _declspec(dllexport) void onPostInit()
 {
     std::ios::sync_with_stdio(false);
-#ifdef DEBUG
-    logBetaInfo();
+#ifdef PLUGIN_IS_BETA
     logger.warn("This plugin is a beta version and may have bugs");
 #else
     // Set global SEH-Exception handler

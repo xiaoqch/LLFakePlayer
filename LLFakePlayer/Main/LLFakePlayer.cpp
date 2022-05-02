@@ -31,15 +31,15 @@ inline void unlockCommands(CommandRegistry& registry)
 void entry()
 {
     Event::RegCmdEvent::subscribe([](Event::RegCmdEvent ev) -> bool {
-#ifdef DEBUG
+#ifdef PLUGIN_IS_BETA
         TickingCommand::setup(*ev.mCommandRegistry);
         unlockCommands(*ev.mCommandRegistry);
-#endif // DEBUG
+#endif // PLUGIN_IS_BETA
         FakePlayerCommand::setup(*ev.mCommandRegistry);
         return true;
     });
     // ========== Test ==========
-#ifdef DEBUG
+#ifdef PLUGIN_IS_DEV
     auto listener = Event::PlayerJoinEvent::subscribe([](Event::PlayerJoinEvent const& ev) -> bool {
         DEBUGW(ev.mPlayer->getNetworkIdentifier()->toString());
         return true;
@@ -49,5 +49,5 @@ void entry()
         // FakePlayerManager::getManager();
         return true;
     });
-#endif // DEBUG
+#endif // PLUGIN_IS_BETA
 }
