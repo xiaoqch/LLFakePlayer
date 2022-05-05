@@ -23,6 +23,12 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{603170c0-d378-4b5e-9268-7e3058079c46}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third-party">
+      <UniqueIdentifier>{5a2d85f0-f9df-4369-adf8-9dfab48fd76d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party\lodepng">
+      <UniqueIdentifier>{8825f76a-d179-47a3-a3e1-f2dd36abd7d4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\LiteLoaderSDK\Lib\bedrock_server_api.lib">
@@ -39,9 +45,6 @@
     </Library>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main\FakePlayerCommand.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
     <ClCompile Include="Main\FakePlayerManager.cpp">
       <Filter>Main</Filter>
     </ClCompile>
@@ -63,15 +66,22 @@
     <ClCompile Include="Utils\MyPackets.cpp">
       <Filter>Packet</Filter>
     </ClCompile>
-    <ClCompile Include="Main\PacketHelper.cpp">
-      <Filter>Packet</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="FakePlayerAPI.cpp" />
+    <ClCompile Include="..\lodepng\lodepng.cpp">
+      <Filter>third-party\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\FakeClient.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\FakePlayerCommand.cpp">
+      <Filter>Command</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinHelper.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Main\FakePlayerCommand.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="Main\framework.h">
       <Filter>Main</Filter>
     </ClInclude>
@@ -103,6 +113,16 @@
     <ClInclude Include="Version.h">
       <Filter>Main</Filter>
     </ClInclude>
+    <ClInclude Include="FakePlayerAPI.h" />
+    <ClInclude Include="..\lodepng\lodepng.h">
+      <Filter>third-party\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\FakePlayerCommand.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinHelper.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resource\vftable_ServerPlayer.txt">
@@ -115,6 +135,9 @@
   <ItemGroup>
     <None Include="Resource\LLFakePlayer.aps">
       <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\LiteLoaderSDK\Tools\LLPeEditor.exe">
+      <Filter>Lib</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

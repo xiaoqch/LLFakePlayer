@@ -49,13 +49,13 @@
     <IncludePath>$(SolutionDir)\LLFakePlayer\;$(SolutionDir)\LLFakePlayer\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
-    <ExternalIncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)\lodepng;$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)\LLFakePlayer\;$(SolutionDir)\LLFakePlayer\Header\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <ExternalIncludePath>$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(SolutionDir)\lodepng;$(SolutionDir)\LiteLoaderSDK\Header\;$(SolutionDir)\LiteLoaderSDK\Header\third-party\;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -164,21 +164,35 @@ LibraryBuilder.exe -o ..\Lib\
     <Library Include="..\LiteLoaderSDK\Lib\SymDBHelper.lib" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\lodepng\lodepng.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeaderFile>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level1</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level1</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="FakePlayerAPI.cpp" />
     <ClCompile Include="Main\Config.cpp" />
     <ClCompile Include="Main\dllmain.cpp" />
     <ClCompile Include="Main\FakePlayerCommand.cpp" />
     <ClCompile Include="Main\FakePlayerManager.cpp" />
     <ClCompile Include="Main\LLFakePlayer.cpp" />
-    <ClCompile Include="Main\PacketHelper.cpp" />
+    <ClCompile Include="Main\FakeClient.cpp" />
     <ClCompile Include="Main\SimulatedPlayerHelper.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SkinHelper.cpp" />
     <ClCompile Include="Utils\ColorHelper.cpp" />
     <ClCompile Include="Utils\MyPackets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lodepng\lodepng.h" />
+    <ClInclude Include="FakePlayerAPI.h" />
     <ClInclude Include="Header\FakePlayerManager.h" />
     <ClInclude Include="Header\SimulatedPlayerHelper.h" />
     <ClInclude Include="Main\Config.h" />
@@ -186,6 +200,7 @@ LibraryBuilder.exe -o ..\Lib\
     <ClInclude Include="Main\framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource\resource.h" />
+    <ClInclude Include="SkinHelper.h" />
     <ClInclude Include="Utils\ColorHelper.h" />
     <ClInclude Include="Utils\DebugHelper.h" />
     <ClInclude Include="Utils\DlsymStatic.h" />
@@ -197,6 +212,7 @@ LibraryBuilder.exe -o ..\Lib\
     <Text Include="Resource\vftable_SimulatedPlayer.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\LiteLoaderSDK\Tools\LLPeEditor.exe" />
     <None Include="Resource\LLFakePlayer.aps" />
   </ItemGroup>
   <ItemGroup>

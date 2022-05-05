@@ -14,7 +14,7 @@
 #include <LoggerAPI.h>
 #include "Utils/MyPackets.h"
 
-#ifdef DEBUG
+#ifdef VERBOSE
 #include <MC/PrettySnbtFormat.hpp>
 #include <MC/ColorFormat.hpp>
 class PrettySnbtFormatConsole : public PrettySnbtFormat
@@ -33,8 +33,8 @@ void debugLogNbt(CompoundTag const& tag)
     logger.info("Snbt: \n{}", tag.toPrettySNBT(format));
 }
 #else
-#define debugLogNbt(x)
-#endif // DEBUG
+#define debugLogNbt(...) (void)0
+#endif // VERBOSE
 
 void logPlayerInfo(Player* player)
 {

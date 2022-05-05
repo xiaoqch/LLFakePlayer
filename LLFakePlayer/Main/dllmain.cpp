@@ -60,7 +60,7 @@ _declspec(dllexport) void onPostInit()
     if constexpr (ENABLE_CONFIG)
         Config::initConfig();
     entry();
-    logger.info("{} Loaded, Version: {}, Author: {}", PLUGIN_NAME, PLUGIN_VERSION_STRING, PLUGIN_AUTHOR);
+    logger.info("{} Loaded, Version: {}, Author: {}", PLUGIN_NAME, PLUGIN_FILE_VERSION_STRING, PLUGIN_AUTHOR);
     if constexpr (PLUGIN_USAGE)
         logger.info("Usage: \n{}", PLUGIN_USAGE);
     if constexpr (ENABLE_LOG_FILE)

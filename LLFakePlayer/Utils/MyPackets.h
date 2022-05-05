@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <Global.h>
 #include <MC/BinaryStream.hpp>
 #include <MC/Block.hpp>
 #include <MC/Level.hpp>
@@ -9,6 +10,69 @@
 #include <MC/ServerNetworkHandler.hpp>
 #include <MC/SynchedActorData.hpp>
 #include <magic_enum/magic_enum.hpp>
+
+//#include <MC/Packet.hpp>
+class ReadOnlyBinaryStream;
+class BinaryStream;
+class ServerPlayer;
+class NetworkIdentifier;
+enum StreamReadResult;
+enum class PacketReliability
+{
+    Relible,
+    RelibleOrdered
+};
+
+
+class Packet
+{
+public:
+    unsigned unk2 = 2;                                                     // 8
+    PacketReliability reliableOrdered = PacketReliability::RelibleOrdered; // 12
+    unsigned char clientSubId = 0;                                         // 16
+    uint64_t unk24 = 0;                                                    // 24
+    uint64_t unk40 = 0;                                                    // 32
+    uint32_t incompressible = 0;                                           // 40
+
+    inline Packet(unsigned compress)
+        : incompressible(!compress)
+    {
+    }
+    inline Packet()
+    {
+    }
+    class Packet& operator=(class Packet const&) = delete;
+    Packet(class Packet const&) = delete;
+
+    inline ServerPlayer* getPlayerFromPacket(ServerNetworkHandler* handler, NetworkIdentifier* netId)
+    {
+        return handler->getServerPlayer(*netId, dAccess<char>(this, 16));
+    }
+    inline enum StreamReadResult read(class ReadOnlyBinaryStream& binaryStream)
+    {
+        return _read(binaryStream);
+    }
+
+    std::string toDebugString()
+    {
+        return fmt::format("{}({})->{}", getName(), getId(), clientSubId);
+    }
+
+
+public:
+    /*0*/ virtual ~Packet();
+    /*1*/ virtual enum MinecraftPacketIds getId() const = 0;
+    /*2*/ virtual std::string getName() const = 0;
+    /*3*/ virtual void write(class BinaryStream&) const = 0;
+    /*4*/ virtual struct ExtendedStreamReadResult readExtended(class ReadOnlyBinaryStream&);
+    /*5*/ virtual bool disallowBatching() const;
+    /*6*/ virtual enum StreamReadResult _read(class ReadOnlyBinaryStream&) = 0;
+};
+inline std::string getPacketIdAndName(Packet const& pkt)
+{
+    return fmt::format("{}({})", pkt.getName(), pkt.getId());
+}
+
 
 #pragma region ToDebugString
 
@@ -64,60 +128,6 @@ inline std::enable_if_t<std::is_enum_v<_Ty>, std::basic_ostream<char, _Traits>&>
 
 #pragma endregion
 
-class ReadOnlyBinaryStream;
-class BinaryStream;
-class ServerPlayer;
-enum StreamReadResult;
-enum class PacketReliability
-{
-    Relible,
-    RelibleOrdered
-};
-
-class Packet
-{
-public:
-    unsigned unk2 = 2;                                                     // 8
-    PacketReliability reliableOrdered = PacketReliability::RelibleOrdered; // 12
-    unsigned char clientSubId = 0;                                         // 16
-    uint64_t unk24 = 0;                                                    // 24
-    uint64_t unk40 = 0;                                                    // 32
-    uint32_t incompressible = 0;                                           // 40
-
-    inline Packet(unsigned compress)
-        : incompressible(!compress)
-    {
-    }
-    inline Packet()
-    {
-    }
-    class Packet& operator=(class Packet const&) = delete;
-    Packet(class Packet const&) = delete;
-
-    inline ServerPlayer* getPlayerFromPacket(ServerNetworkHandler* handler, NetworkIdentifier* netId)
-    {
-        return handler->getServerPlayer(*netId, dAccess<char>(this, 16));
-    }
-    inline enum StreamReadResult read(class ReadOnlyBinaryStream& binaryStream)
-    {
-        return _read(binaryStream);
-    }
-
-    std::string toDebugString() const
-    {
-        return fmt::format("{}({})", getName(), getId());
-    }
-
-public:
-    /*0*/ virtual ~Packet();
-    /*1*/ virtual enum MinecraftPacketIds getId() const = 0;
-    /*2*/ virtual std::string getName() const = 0;
-    /*3*/ virtual void write(class BinaryStream&) const = 0;
-    /*4*/ virtual struct ExtendedStreamReadResult readExtended(class ReadOnlyBinaryStream&);
-    /*5*/ virtual bool disallowBatching() const;
-    /*6*/ virtual enum StreamReadResult _read(class ReadOnlyBinaryStream&) = 0;
-};
-
 // ChangeDimensionPacket
 class ChangeDimensionPacket : public Packet
 {
@@ -128,7 +138,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mDimensionId) << KeyAndVal(mPosition) << KeyAndVal(mRespawn);
         return oss.str();
     }
@@ -172,7 +182,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mScreenID) << KeyAndVal(mCraftingType) << KeyAndVal(mRecipeUUID) << KeyAndVal(mInputItems.size()) << KeyAndVal(mOutputItems.size());
         return oss.str();
     }
@@ -233,7 +243,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mUniqueId) << KeyAndVal(mData.mType) << std::endl;
         return oss.str();
     }
@@ -292,7 +302,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mFormId) << KeyAndVal(mData);
         return oss.str();
     }
@@ -316,7 +326,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mFormId) << KeyAndVal(mData);
         return oss.str();
     }
@@ -358,7 +368,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mRuntimeId) << KeyAndVal(mPosition)
             << KeyAndVal(mPitch) << KeyAndVal(mYaw) << KeyAndVal(mHeadYaw)
             << KeyAndVal(mMode) << KeyAndVal(mOnGround) << KeyAndVal(mRidingRuntimeId)
@@ -421,7 +431,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mPosition) << KeyAndVal(mBlockFace)
             << KeyAndVal(mActionType) << KeyAndVal(mRuntimeID);
         return oss.str();
@@ -442,14 +452,14 @@ public:
 // PlayStatusPacket
 enum PlayStatus : int
 {
-    PlayStatusLoginSuccess,
-    PlayStatusLoginFailedClient,
-    PlayStatusLoginFailedServer,
-    PlayStatusPlayerSpawn,
-    PlayStatusLoginFailedInvalidTenant,
-    PlayStatusLoginFailedVanillaEdu,
-    PlayStatusLoginFailedEduVanilla,
-    PlayStatusLoginFailedServerFull,
+    LoginSuccess,
+    LoginFailedClient,
+    LoginFailedServer,
+    PlayerSpawn,
+    LoginFailedInvalidTenant,
+    LoginFailedVanillaEdu,
+    LoginFailedEduVanilla,
+    LoginFailedServerFull,
 };
 
 class PlayStatusPacket : public Packet
@@ -460,7 +470,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(status);
         return oss.str();
     }
@@ -493,7 +503,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mRespawnPosition) << KeyAndVal(mRespawnState) << KeyAndVal(mRuntimeId);
         return oss.str();
     }
@@ -523,7 +533,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mRuntimeId) << KeyAndVal(mState);
         return oss.str();
     }
@@ -562,7 +572,7 @@ public:
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
         oss << KeyAndVal(mContainerId) << KeyAndVal(mSlot);
         return oss.str();
     }
@@ -593,9 +603,8 @@ public:
 
     inline std::string toDebugString() const
     {
-        constexpr auto a = offsetof(MobEquipmentPacket, mInventorySlot);
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
 
         oss << KeyAndVal(mRuntimeId) << KeyAndVal(mInventorySlot) << KeyAndVal(HotBarSlot) << KeyAndVal(mContainerId);
         return oss.str();
@@ -624,9 +633,8 @@ public:
 
     inline std::string toDebugString() const
     {
-        constexpr auto a = offsetof(MobEquipmentPacket, mInventorySlot);
         std::ostringstream oss;
-        oss << __super::toDebugString();
+        oss << getPacketIdAndName(*this);
 
         oss << KeyAndVal(mRuntimeId) << KeyAndVal(mTick) << KeyAndVal(mDataItems.size());
         return oss.str();
@@ -642,6 +650,49 @@ public:
     MCAPI SetActorDataPacket(class ActorRuntimeID, class SynchedActorData&, bool);
     MCAPI SetActorDataPacket();
 };
+
+#include <MC/ColorFormat.hpp>
+class TextPacket : public Packet
+{
+    TextType mType;                       // 48
+    std::string mSourceName;              // 56
+    std::string mMessage;                 // 88
+    std::vector<std::string> mParameters; // 120
+    bool mNeedsTranslation;               // 144
+    std::string mXUID;                    // 152
+    std::string mPlatformChatID;          // 184
+
+public:
+    inline std::string toDebugString() const
+    {
+        std::ostringstream oss;
+        oss << getPacketIdAndName(*this);
+
+        oss << KeyAndVal(mType) << KeyAndVal(mSourceName) << KeyAndVal(mMessage)
+            << KeyAndVal(mParameters.size()) << KeyAndVal(mNeedsTranslation) 
+            << KeyAndVal(mXUID) << KeyAndVal(mPlatformChatID);
+        return ColorFormat::convertToColsole(oss.str());
+    }
+
+    /*0*/ virtual ~TextPacket();
+    /*1*/ virtual enum MinecraftPacketIds getId() const;
+    /*2*/ virtual std::string getName() const;
+    /*3*/ virtual void write(class BinaryStream&) const;
+    /*6*/ virtual enum StreamReadResult _read(class ReadOnlyBinaryStream&);
+
+    MCAPI TextPacket();
+    MCAPI static class TextPacket createAnnouncement(std::string const&, std::string const&, std::string const&, std::string const&);
+    MCAPI static class TextPacket createChat(std::string const&, std::string const&, std::string const&, std::string const&);
+    MCAPI static class TextPacket createJukeboxPopup(std::string const&, std::vector<std::string> const&);
+    MCAPI static class TextPacket createSystemMessage(std::string const&);
+    MCAPI static class TextPacket createTextObjectMessage(class ResolvedTextObject const&, std::string, std::string);
+    MCAPI static class TextPacket createTextObjectWhisperMessage(class ResolvedTextObject const&, std::string const&, std::string const&);
+    MCAPI static class TextPacket createTranslated(std::string const&, std::vector<std::string> const&);
+    MCAPI static class TextPacket createTranslatedAnnouncement(std::string const&, std::string const&, std::string const&, std::string const&);
+    MCAPI static class TextPacket createWhisper(std::string const&, std::string const&, std::string const&, std::string const&);
+
+};
+static_assert(sizeof(TextPacket) == 168 + 48);
 
 static_assert(offsetof(EventPacket, mData.mType) == 56);
 static_assert(offsetof(ShowCreditsPacket, mState) == 56);

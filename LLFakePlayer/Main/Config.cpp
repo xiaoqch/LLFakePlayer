@@ -78,8 +78,6 @@ bool saveConfig()
 
 bool initConfig()
 {
-    int a = 0;
-    delete &a;
     bool needToSave = false;
     auto jsonStr = ReadAllFile(PLUGIN_CONFIG_PATH);
     if (jsonStr.has_value())

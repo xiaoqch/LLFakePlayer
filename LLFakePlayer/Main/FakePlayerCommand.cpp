@@ -181,7 +181,7 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionImport, nameOptional);
 }
 
-#ifdef DEBUG
+#ifdef PLUGIN_IS_BETA
 
 // =============== Test ===============
 #include <MC/BlockSource.hpp>
@@ -342,4 +342,4 @@ void TickingCommand::setup(CommandRegistry& registry)
     
 }
 
-#endif // DEBUG
+#endif // PLUGIN_IS_BETA

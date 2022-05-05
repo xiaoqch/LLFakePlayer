@@ -6,6 +6,8 @@
 // Global Info
 #define GITHUB_LINK "https://github.com/xiaoqch/"
 
+//#define VERBOSE
+
 // Path
 #define LOG_DIR "./logs/"
 #define PLUGINS_DIR "./plugins/"
@@ -57,12 +59,3 @@ bool saveConfig();
 bool initConfig();
 } // namespace Config
 
-#if PLUGIN_VERSION_IS_BETA
-void logBetaInfo();
-#endif // !PLUGIN_VERSION_IS_BETA
-
-#if PLUGIN_VERSION_IS_BETA
-#define PLUGIN_VERSION_STRING MACRO_TO_STR(PLUGIN_VERSION_MAJOR.PLUGIN_VERSION_MINOR.PLUGIN_VERSION_REVISION beta)
-#else
-#define PLUGIN_VERSION_STRING MACRO_TO_STR(PLUGIN_VERSION_MAJOR.PLUGIN_VERSION_MINOR.PLUGIN_VERSION_REVISION)
-#endif // PLUGIN_VERSION_IS_BETA

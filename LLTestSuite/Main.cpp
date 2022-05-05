@@ -8,9 +8,9 @@
 SimulatedPlayer* testPlayer;
 
 #ifdef DEBUG
-#pragma lib("./x64/Release/LLFakePlayer.lib")
+#pragma(lib ,"./x64/Release/LLFakePlayer.lib")
 #else
-#pragma lib("./x64/Debug/LLFakePlayer.lib")
+#pragma(lib ,"./x64/Debug/LLFakePlayer.lib")
 #endif // DEBUG
 
 

@@ -31,6 +31,7 @@ inline void _WASSERT(
                                   (_WASSERT(#expression, __FILE__, (unsigned)(__LINE__)), __debugbreak(), 0))
 #define DEBUGL(...) logger.info(__VA_ARGS__)
 #define DEBUGW(...) logger.warn(__VA_ARGS__)
+#define DEBUGBREAK() __debugbreak();
 #define LOG_VAR(var) logger.info("{} = {}", #var, var);
 
 template <size_t size = 1000, typename T = void******>
@@ -44,5 +45,6 @@ struct voids
 #define ASSERT(var) ((void)0)
 #define DEBUGL(...) ((void)0)
 #define DEBUGW(...) ((void)0)
+#define DEBUGBREAK() ((void)0)
 #define LOG_VAR(var) ((void)0)
 #endif // DEBUG

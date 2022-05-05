@@ -1,5 +1,4 @@
 #pragma once
-#include "Config.h"
 #include <MC/SimulatedPlayer.hpp>
 #include <MC/CompoundTag.hpp>
 #include <MC/Int64Tag.hpp>
@@ -10,11 +9,14 @@
 #include <KVDBAPI.h>
 
 #define FPPUBLIC public
+
+#ifndef FPAPI
 #ifdef LLFAKEPLAYER_EXPORTS
 #define FPAPI __declspec(dllexport)
 #else
 #define FPAPI __declspec(dllimport)
 #endif
+#endif // !FPAPI
 
 
 namespace JAVA
@@ -30,7 +32,11 @@ inline mce::UUID seedFromString(std::string const& str)
 class FakePlayerManager;
 class FakePlayer;
 class FakePlayerStorage;
+#ifdef VERBOSE
 void debugLogNbt(CompoundTag const& tag);
+#else
+#define debugLogNbt(...) (void)0
+#endif // VERBOSE
 
 template <>
 struct std::hash<mce::UUID>
@@ -286,7 +292,7 @@ public:
         if (!res)
         {
             mLogger.error("Error in {} - {}", __FUNCTION__, storageId);
-            __debugbreak();
+            DEBUGBREAK();
             return false;
         }
         auto serverId = fakePlayer.getServerId();
@@ -294,7 +300,7 @@ public:
         if (!res)
         {
             mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-            __debugbreak();
+            DEBUGBREAK();
             return false;
         }
         return true;
@@ -314,7 +320,7 @@ public:
         if (tag && mStorage->set(serverId, tag->toBinaryNBT(true)))
             return true;
         mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-        __debugbreak();
+        DEBUGBREAK();
         return false;
     };
     inline bool savePlayerTag(FakePlayer const& fakePlayer, CompoundTag const& tag)
@@ -324,7 +330,7 @@ public:
         if (mStorage->set(serverId, const_cast<CompoundTag&>(tag).toBinaryNBT(true)))
             return true;
         mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-        __debugbreak();
+        DEBUGBREAK();
         return false;
     };
     inline bool savePlayerInfo(FakePlayer const& fakePlayer)
@@ -335,7 +341,7 @@ public:
         if (mStorage->set(storageId, info))
             return true;
         mLogger.error("Error in {} - {}", __FUNCTION__, storageId);
-        __debugbreak();
+        DEBUGBREAK();
         return false;
     };
     inline std::string getPlayerData(mce::UUID uuid)
@@ -345,8 +351,10 @@ public:
         std::string data = "";
         if (mStorage->get(serverId, data))
             return data;
-        mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-        __debugbreak();
+#ifdef DEBUG
+            // mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
+            // DEBUGBREAK();
+#endif // DEBUG
         return "";
     };
     inline std::string getPlayerData(FakePlayer const& fakePlayer)
@@ -373,7 +381,7 @@ public:
         if (!res)
         {
             mLogger.error("Error in {} - {}", __FUNCTION__, storageId);
-            __debugbreak();
+            DEBUGBREAK();
             return {};
         }
         auto info = CompoundTag::fromBinaryNBT(data, true);
