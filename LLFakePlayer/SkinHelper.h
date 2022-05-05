@@ -165,6 +165,42 @@ public:
     MCAPI SerializedPersonaPieceHandle(std::string const&, enum persona::PieceType, class mce::UUID, bool, std::string const&);
 };
 
+namespace persona
+{
+enum PieceType : unsigned int
+{
+    Unknown = 0x00, // or DefaultPieceNullType
+    Skeleton = 0x01,
+    Body = 0x02,
+    Skin = 0x03,
+    Bottom = 0x04,
+    Feet = 0x05,
+    Dress = 0x06,
+    Top = 0x07,
+    HighPants = 0x08,
+    Hand = 0x09,
+    Outerwear = 0x0A,
+    FacialHair = 0x0B,
+    Mouth = 0x0C,
+    Eyes = 0x0D,
+    Hair = 0x0E,
+    Hood = 0x0F,
+    Back = 0x10,
+    FaceAccessory = 0x11,
+    Head = 0x12,
+    Legs = 0x13,
+    LeftLeg = 0x14,
+    RightLeg = 0x15,
+    Arms = 0x16,
+    LeftArm = 0x17,
+    RightArm = 0x18,
+    Capes = 0x19,
+    ClassicSkin = 0x1A,
+    Emote = 0x1B,
+    Unsupported = 0x1C,
+};
+}
+#ifdef DEBUG
 inline void genPieceTypeEnum()
 {
     logger.warn("True");
@@ -180,6 +216,7 @@ inline void genPieceTypeEnum()
     __debugbreak();
 }
 //inline bool f = ([]() { genPieceTypeEnum(); return true; })();
+#endif // DEBUG
 class SerializedSkin
 {
     // by dreamguxiang

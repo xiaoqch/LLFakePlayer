@@ -37,13 +37,191 @@ class DimensionStateSystem
 public:
     MCAPI static bool isDimensionReady(class EntityContext const&);
 };
+// sizeof(ServerPlayer) == 9184
+// sizeof(SimulatedPlayer) == 9432
+constexpr size_t ServerPlayerSize = 9184;
+constexpr size_t SimulatedPlayerSize = 9432;
+//#include <MC/PlayerMovementSettings.hpp>
+
+#ifdef DEBUG
+using _QWORD = unsigned __int64;
+using _DWORD = unsigned int;
+using _WORD = unsigned short;
+using _BYTE = unsigned char;
+struct PlayerMovementSettings
+{
+    _WORD unk9320 = 1;      // 9320 - size = 104
+    _DWORD unk9324 = 0i64;  // 9324
+    _DWORD unk9328 = 0i64;  // 9324
+    _DWORD unk9332 = 0i64;  // 9332
+    _DWORD unk9336 = 0i64;  // 9332
+    _QWORD unk9344 = 0i64;  // 9344
+    _QWORD unk9352 = 0i64;  // 9352
+    _QWORD unk9360 = 0i64;  // 9360
+    _QWORD unk9368 = 0i64;  // 9368
+    _QWORD unk9376 = 0i64;  // 9376
+    _BYTE unk9384 = 0;      // 9384
+    _DWORD unk9388 = 0i64;  // 9388
+    _DWORD unk9392 = 0i64;  // 9392
+    _DWORD unk9396 = 0i64;  // 9396
+    _WORD unk9400 = 0x6400; // 9400
+    _QWORD unk9408 = 40i64; // 9408
+    _BYTE unk9416 = 1;      // 9416
+    _DWORD unk9420 = 0;     // 9420
+    bool operator==(PlayerMovementSettings const& right) const
+    {
+        return unk9320 == right.unk9320 && unk9324 == right.unk9324 && unk9328 == right.unk9328 && unk9332 == right.unk9332 && unk9336 == right.unk9336 && unk9344 == right.unk9344 && unk9352 == right.unk9352 && unk9360 == right.unk9360 && unk9368 == right.unk9368 && unk9376 == right.unk9376 && unk9384 == right.unk9384 && unk9388 == right.unk9388 && unk9392 == right.unk9392 && unk9396 == right.unk9396 && unk9400 == right.unk9400 && unk9408 == right.unk9408 && unk9416 == right.unk9416 && unk9420 == right.unk9420;
+    };
+    bool operator!=(PlayerMovementSettings const& right) const
+    {
+        return !(*this == right);
+    }
+};
+static_assert(sizeof(PlayerMovementSettings) == 104);
+
+template <>
+struct fmt::formatter<Vec3>
+{
+    // Presentation format: 'f' - fixed, 'e' - exponential.
+    char presentation = 'f';
+
+    // Parses format specifications of the form ['f' | 'e'].
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        // [ctx.begin(), ctx.end()) is a character range that contains a part of
+        // the format string starting from the format specifications to be parsed,
+        // e.g. in
+        //
+        //   fmt::format("{:f} - point of interest", point{1, 2});
+        //
+        // the range will contain "f} - point of interest". The formatter should
+        // parse specifiers until '}' or the end of the range. In this example
+        // the formatter should parse the 'f' specifier and return an iterator
+        // pointing to '}'.
+
+        // Parse the presentation format and store it in the formatter:
+        auto it = ctx.begin(), end = ctx.end();
+        if (it != end && (*it == 'f' || *it == 'e')) presentation = *it++;
+
+        // Check if reached the end of the range:
+        if (it != end && *it != '}') throw format_error("invalid format");
+
+        // Return an iterator past the end of the parsed range:
+        return it;
+    }
+
+    // Formats the point p using the parsed format specification (presentation)
+    // stored in this formatter.
+    template <typename FormatContext>
+    auto format(const Vec3& p, FormatContext& ctx) -> decltype(ctx.out())
+    {
+        // ctx.out() is an output iterator to write to.
+        return presentation == 'f'
+                   ? format_to(ctx.out(), "({:.1f}, {:.1f}, {:.1f})", p.x, p.y, p.z)
+                   : format_to(ctx.out(), "({:.1e}, {:.1e}, {:.1e})", p.x, p.y, p.z);
+    }
+};
+template <>
+struct fmt::formatter<BlockPos>
+{
+
+    // Parses format specifications of the form ['f' | 'e'].
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto it = ctx.begin(), end = ctx.end();
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(const BlockPos& p, FormatContext& ctx) -> decltype(ctx.out())
+    {
+        return format_to(ctx.out(), "({}, {}, {})", p.x, p.y, p.z);
+    }
+};
+
+class FakeSimulatedPlayer
+{
+public:
+    char player[ServerPlayerSize];
+
+    _BYTE unk9184                           = 0       ;                              // 9184 _updateMovement
+    Vec3 unk9188                                      ;                                                             // 9188 _updateMovement
+    _BYTE unk9200                           = 0       ;                              // 9200 _updateMovement,
+    Vec3 unk9204                                      ;                                                             // 9204 _updateMovement
+    _BYTE unk9216                           = 0       ;                              // 9216 _updateMovement
+    Vec3 unk9220                                      ;                                                             // 9220 _updateMovement
+    _BYTE unk9232                           = 0       ;                              // 9232 _updateMovement
+    BlockPos breakingBlockPos                         ;                                                // 9236 aiStep
+    _BYTE unk9248                           = 0       ;                              // 9248 aiStep
+    char filler9249[3]                                ;                                                       //
+    unsigned char unk9252                             ;                                                    // 9252 aiStep
+    _BYTE unk9253                           = 0       ;                              // 9253
+    std::vector<BlockPos> unk9256                     ;                                            // 9256 _updateMovement
+    _BYTE unk9280                           = 0       ;                              // 9280 _updateMovement, Navigate
+    _QWORD unk9288                          = 0i64    ;                           // 9288 _updateMovement
+    std::shared_ptr<void*> gametestHelper             ;                                    // 9296 getGameTestHelper
+    _QWORD unk9312                          = 0i64    ;                           // 9312
+    PlayerMovementSettings movementSettings = {}      ;                             // 9320
+    float mOldY                             = -FLT_MAX;                       // 9424 aiStep
+    float inputSpeed                        = 0       ;                              // 9428 _getInputSpeed
+
+    inline void breakIfStateChanged()
+    {
+#define ListenAndLog(val)               \
+    static auto _##val = val;          \
+    if (_##val != val) logger.error("[ValueChange] {}: {} -> {}", #val, _##val, val); \
+    _##val = val;
+#define ListenAndBreak(val)               \
+    static auto _##val = val;          \
+    if (_##val != val) __debugbreak(); \
+    _##val = val;
+        ListenAndLog(unk9184);
+        ListenAndLog(unk9188);
+        ListenAndLog(unk9200);
+        ListenAndLog(unk9204);
+        ListenAndLog(unk9216);
+        ListenAndLog(unk9220);
+        ListenAndLog(unk9232);
+        ListenAndLog(breakingBlockPos);
+        ListenAndLog(unk9248);
+        ListenAndLog(unk9252);
+        ListenAndLog(unk9253);
+        ListenAndBreak(unk9256);
+        ListenAndLog(unk9280);
+        ListenAndLog(unk9288);
+        ListenAndBreak(gametestHelper);
+        ListenAndLog(unk9312);
+        ListenAndBreak(movementSettings);
+        ListenAndLog(mOldY);
+        ListenAndLog(inputSpeed);
+
+    }
+
+    inline static FakeSimulatedPlayer* from(Player* player)
+    {
+        return (FakeSimulatedPlayer*)player;
+    }
+};
+
+static_assert(sizeof(FakeSimulatedPlayer) == SimulatedPlayerSize);
+static_assert(offsetof(FakeSimulatedPlayer, unk9184) == 9184);
+static_assert(offsetof(FakeSimulatedPlayer, unk9200) == 9200);
+static_assert(offsetof(FakeSimulatedPlayer, unk9216) == 9216);
+static_assert(offsetof(FakeSimulatedPlayer, unk9232) == 9232);
+static_assert(offsetof(FakeSimulatedPlayer, unk9248) == 9248);
+static_assert(offsetof(FakeSimulatedPlayer, unk9253) == 9253);
+static_assert(offsetof(FakeSimulatedPlayer, unk9280) == 9280);
+static_assert(offsetof(FakeSimulatedPlayer, unk9288) == 9288);
+
+#endif // DEBUG
+
 namespace PlayerOffset
 {
 constexpr size_t mIsInitialSpawnDone = 3921;         // ServerPlayer::isPlayerInitialized
 constexpr size_t mLoading = 8952;                    // ServerPlayer::isPlayerInitialized
 constexpr size_t mLocalPlayerInitialized = 8954;     // ServerPlayer::isPlayerInitialized
 constexpr size_t mSimulatedOldY = 9424;              // SimulatedPlayer::aiStep
-constexpr size_t mBlockRespawnUntilClientMessage = 8488; // ServerPlayer::_updateChunkPublisherView
+constexpr size_t mBlockRespawnUntilClientMessage = 3716; // ServerPlayer::_updateChunkPublisherView
 constexpr size_t mNetworkChunkPublisher = 8488;      // ServerPlayer::_updateChunkPublisherView
 constexpr size_t mServerHasMovementAuthority = 8488; // ??
 constexpr size_t mGameMode = 4680;                   // ??
@@ -138,10 +316,10 @@ void handle(SimulatedPlayer* sp, RespawnPacket* packet)
                 ASSERT((int)res.mBlockFace == -1);
                 ASSERT(res.mActionType == PlayerActionType::Respawn);
 
-                trySetOldY((SimulatedPlayer&)*sp, FLT_MIN);
+                trySetOldY((SimulatedPlayer&)*sp, -FLT_MAX);
                 send(sp, res);
 
-                ASSERT(DimensionStateSystem::isDimensionReady(dAccess<EntityContext, 8>(&sp)));
+                ASSERT(DimensionStateSystem::isDimensionReady(dAccess<EntityContext, 8>(sp)));
             }
         });
 }
@@ -252,9 +430,14 @@ void handle(SimulatedPlayer* sp, MobEquipmentPacket* packet)
     // }
 #endif // DEBUG
 }
-#include <MC/GameMode.hpp>
+
 void handlePacket(SimulatedPlayer* sp, Packet* packet)
 {
+#ifdef DEBUG
+    FakeSimulatedPlayer* fp = FakeSimulatedPlayer::from(sp);
+    fp->breakIfStateChanged();
+#endif // DEBUG
+
     switch (packet->getId())
     {
         case MinecraftPacketIds::ShowCredits:
@@ -384,9 +567,10 @@ TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacke
             return;
 #endif // DEBUG
         }
-        catch (const std::exception&)
+        catch (const std::exception& e)
         {
             logger.error("Error in NetworkHandler::send");
+            DEBUGBREAK();
         }
     }
     return original(this, networkID, packet, clientSubID);
@@ -446,9 +630,9 @@ TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@
                 return FakeClient::handlePacket((SimulatedPlayer*)sp, &pkt);
             }
         }
-        catch (const std::exception&)
+        catch (const std::exception& e)
         {
-            logger.error("Failed to get player's client sub id from NetworkIdentifier");
+            logger.error("Failed to get player's client sub id from NetworkIdentifier for {}", pkt.getName());
             DEBUGBREAK();
         }
     }
@@ -489,8 +673,6 @@ TInstanceHook(std::shared_ptr<class ChunkViewSource>&, "?_createChunkSource@Simu
 bool trySetOldY(SimulatedPlayer& sp, float y)
 {
 #if false
-
-
 #ifndef DEBUG
     static
 #endif // !DEBUG
@@ -506,13 +688,13 @@ bool trySetOldY(SimulatedPlayer& sp, float y)
                     return defaultOffset - off * 4;
             }
 #ifdef DEBUG
-            if (FLT_MIN == dAccess<float>(&sp, defaultOffset))
+            if (-FLT_MAX == dAccess<float>(&sp, defaultOffset))
                 return 9408;
             for (uintptr_t off = 1; off < 20; ++off)
             {
-                if (FLT_MIN == dAccess<float>(&sp, defaultOffset + off * 4))
+                if (-FLT_MAX == dAccess<float>(&sp, defaultOffset + off * 4))
                     return defaultOffset + off * 4;
-                if (FLT_MIN == dAccess<float>(&sp, defaultOffset - off * 4))
+                if (-FLT_MAX == dAccess<float>(&sp, defaultOffset - off * 4))
                     return defaultOffset - off * 4;
             }
 #endif // DEBUG
@@ -561,7 +743,7 @@ TInstanceHook(void, "?changeDimensionWithCredits@ServerPlayer@@UEAAXV?$Automatic
         LOG_VAR(getPos().toString());
         DEBUGL("ServerPlayer({})::changeDimensionWithCredits({})", getName(), dimid);
 #endif // DEBUG
-        trySetOldY(*(SimulatedPlayer*)this, FLT_MIN);
+        trySetOldY(*(SimulatedPlayer*)this, -FLT_MAX);
     }
     original(this, dimid);
 }
@@ -590,7 +772,7 @@ TInstanceHook(void, "?requestPlayerChangeDimension@Level@@UEAAXAEAVPlayer@@V?$un
     DEBUGL("Level::requestPlayerChangeDimension({}, requestPtr)", player.getNameTag());
     DEBUGL("Request: {}", requestPtr->toDebugString());
     if (isFakePlayer(player))
-        trySetOldY((SimulatedPlayer&)player, FLT_MIN);
+        trySetOldY((SimulatedPlayer&)player, -FLT_MAX);
     return original(this, player, std::move(requestPtr));
 }
 
