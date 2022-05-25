@@ -139,6 +139,11 @@ struct fmt::formatter<BlockPos>
     }
 };
 
+bool operator!=(Vec3 const& left, Vec3 const& right)
+{
+    return left.x != right.x || left.y != right.y || left.z != right.z;
+}
+
 class FakeSimulatedPlayer
 {
 public:
@@ -167,6 +172,7 @@ public:
 
     inline void breakIfStateChanged()
     {
+        return;
 #define ListenAndLog(val)               \
     static auto _##val = val;          \
     if (_##val != val) logger.error("[ValueChange] {}: {} -> {}", #val, _##val, val); \
@@ -541,7 +547,7 @@ void handlePacket(SimulatedPlayer* sp, Packet* packet)
 TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacket@@E@Z",
               NetworkHandler, NetworkIdentifier const& networkID, Packet const& packet, unsigned char clientSubID)
 {
-    if (networkID == FakePlayer::mNetworkID)
+    if (networkID.getHash() == FakePlayer::mNetworkID.getHash())
     {
         try
         {
@@ -586,7 +592,7 @@ TInstanceHook(void, "?sendToClients@LoopbackPacketSender@@UEAAXAEBV?$vector@UNet
 
     for (auto const& client : clients)
     {
-        if (client.mNetworkId.isUnassigned() && client.mNetworkId == FakePlayer::mNetworkID)
+        if (client.mNetworkId.isUnassigned() && client.mNetworkId.getHash() == FakePlayer::mNetworkID.getHash())
         {
             try
             {
@@ -612,7 +618,7 @@ TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@
               NetworkHandler, NetworkIdentifier& nid, class Packet& pkt, std::string const& data)
 {
     // fix simulated player sub id
-    if (!processed && nid == FakePlayer::mNetworkID)
+    if (!processed && nid.getHash() == FakePlayer::mNetworkID.getHash())
     {
         // ASSERT(false);
         try

@@ -558,7 +558,7 @@ static_assert(check_packet_size_v<class MobArmorEquipmentPacket, 0x238>, "size o
 static_assert(check_packet_size_v<class InteractPacket, 0x50>, "size of InteractPacket should be 80 or 48(default)");
 static_assert(check_packet_size_v<class BlockPickRequestPacket, 0x40>, "size of BlockPickRequestPacket should be 64 or 48(default)");
 static_assert(check_packet_size_v<class ActorPickRequestPacket, 0x40>, "size of ActorPickRequestPacket should be 64 or 48(default)");
-static_assert(check_packet_size_v<class PlayerActionPacket, 0x50>, "size of PlayerActionPacket should be 80 or 48(default)");
+//static_assert(check_packet_size_v<class PlayerActionPacket, 0x50>, "size of PlayerActionPacket should be 80 or 48(default)");
 static_assert(check_packet_size_v<class HurtArmorPacket, 0x40>, "size of HurtArmorPacket should be 64 or 48(default)");
 static_assert(check_packet_size_v<class SetActorDataPacket, 0x58>, "size of SetActorDataPacket should be 88 or 48(default)");
 static_assert(check_packet_size_v<class SetActorMotionPacket, 0x48>, "size of SetActorMotionPacket should be 72 or 48(default)");

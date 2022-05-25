@@ -68,13 +68,14 @@ namespace SimulatedPlayerHelper
 // Rewrite SimulatedPlayer::create(std::string const & name,class BlockPos const & bpos,class AutomaticID<class Dimension,int> dimId,class ServerNetworkHandler & handler)
 inline SimulatedPlayer* create(std::string const& name)
 {
-    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0);
+    std::string xuid = "";
+    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0, xuid);
     auto player = ownerPtr.tryGetSimulatedPlayer();
 
     if (player /* && player->isSimulated() */)
     {
         // dAccess<AutomaticID<Dimension, int>>(player, 57) = dimId;
-        player->postLoad(/* isNewPlayer */ true);
+        player->postLoad(/* isNewPlayer */ false);
         Level& level = player->getLevel();
         addUser(level, std::move(ownerPtr));
         // auto pos = bpos.bottomCenter();

@@ -1,4 +1,6 @@
 #include "pch.h"
+#if false
+
 #include "SkinHelper.h"
 #include <EventAPI.h>
 #include <ScheduleAPI.h>
@@ -50,11 +52,11 @@ bool SkinHelper::updatePlayerSkin(Player& player, SerializedSkin const& skin)
     Level::sendPacketForAllPlayer(*pkt);
     return false;
 }
-
+#include <MC/CommandUtils.hpp>
 TInstanceHook(void, "?updateSkin@Player@@QEAAXAEBVSerializedSkin@@H@Z",
               Player, class SerializedSkin const& skin, int id)
 {
-    logger.warn("{} updateSkin - {}, skin id: {}", getName(), id, skin.getName());
+    logger.warn("{} updateSkin - {}, skin id: {}", CommandUtils::getActorName(*this), id, skin.getName());
     return original(this, skin, id);
 }
 
@@ -76,3 +78,6 @@ auto id = Schedule::nextTick([]() {
     logger.info("{}: {}", "trident", VanillaActorRendererId::trident.getString());
 });
 #endif // DEBUG
+
+
+#endif // false

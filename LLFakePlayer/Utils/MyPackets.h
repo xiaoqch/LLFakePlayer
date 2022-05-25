@@ -424,15 +424,16 @@ class PlayerActionPacket : public Packet
 {
 public:
     BlockPos mPosition;           // 48
-    FaceID mBlockFace;            // 60
-    PlayerActionType mActionType; // 64
-    ActorRuntimeID mRuntimeID;    // 72
-
+    BlockPos mPosition2;          // 60
+    FaceID mBlockFace;            // 72
+    PlayerActionType mActionType; // 76
+    ActorRuntimeID mRuntimeID;    // 80
+    
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
         oss << getPacketIdAndName(*this);
-        oss << KeyAndVal(mPosition) << KeyAndVal(mBlockFace)
+        oss << KeyAndVal(mPosition) << KeyAndVal(mPosition2) << KeyAndVal(mBlockFace)
             << KeyAndVal(mActionType) << KeyAndVal(mRuntimeID);
         return oss.str();
     }
@@ -696,6 +697,6 @@ static_assert(sizeof(TextPacket) == 168 + 48);
 
 static_assert(offsetof(EventPacket, mData.mType) == 56);
 static_assert(offsetof(ShowCreditsPacket, mState) == 56);
-static_assert(offsetof(PlayerActionPacket, mActionType) == 64);
+static_assert(offsetof(PlayerActionPacket, mActionType) == 76);
 
 void test();

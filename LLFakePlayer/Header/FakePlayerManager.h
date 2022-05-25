@@ -83,9 +83,9 @@ class FakePlayer
     friend class FakePlayerManager;
     friend class FakePlayerStorage;
 
-FPPUBLIC:
-    
-    static bool mLoggingIn;
+    FPPUBLIC :
+
+        static bool mLoggingIn;
     static FakePlayer* mLoggingInPlayer;
     static NetworkIdentifier mNetworkID;
     static unsigned char mMaxClientSubID;
@@ -215,6 +215,8 @@ public:
     };
 };
 
+#include <MC/PlayerDataSystem.hpp>
+#include <Utils/DbgHelper.h>
 class FakePlayerStorage
 {
 protected:
@@ -224,12 +226,11 @@ protected:
     FakePlayerManager* mManager;
 
 public:
-
-    inline static std::string getStorageId(mce::UUID uuid)
+    inline static std::string playerKey(mce::UUID uuid)
     {
         return "player_" + uuid.asString();
     }
-    inline static std::string getServerId(mce::UUID uuid)
+    inline static std::string serverKey(mce::UUID uuid)
     {
         return "player_server_" + uuid.asString();
     }
@@ -249,16 +250,53 @@ public:
                    ColorFormat::convertToColsole(ColorHelper::green(key)),
                    ColorFormat::convertToColsole(ColorHelper::green(val.size())),
                    ColorFormat::convertToColsole(ColorHelper::green(CompoundTag::fromBinaryNBT((void*)val.data(), val.size())->toString())));
+#ifndef VERBOSE
             if (val.size() < 1024)
+#endif // VERBOSE
                 debugLogNbt(*CompoundTag::fromBinaryNBT((void*)val.data(), val.size()));
             return true;
         });
 #endif // DEBUG
     }
 
-protected:
-    inline bool fixDatabase() {
+    inline bool saveData(std::string const& key, std::string const& data)
+    {
+        CsLockHolder lock(mLock);
+        if (mStorage->set(key, data))
+            return true;
+#ifdef VERBOSE
+        DEBUGL("Error to save Data: {}", key);
+        PrintCurrentStackTraceback(&logger);
+        DEBUGBREAK();
+#endif // VERBOSE
+        return false;
+    }
+    inline bool loadData(std::string const& key, std::string& result)
+    {
+        CsLockHolder lock(mLock);
+        auto data = mStorage->get(key);
+        if (data.has_value())
+        {
+            result = result.data();
+            return true;
+        }
+#ifdef VERBOSE
+        DEBUGL("Key Not Found: {}", key);
+        PrintCurrentStackTraceback(&logger);
+        DEBUGBREAK();
+#endif // VERBOSE
+        return false;
+    }
+    inline bool hasKey(std::string const& key)
+    {
+        CsLockHolder lock(mLock);
+        return mStorage->get(key).has_value();
+    }
 
+protected:
+    inline bool fixDatabase()
+    {
+        return false;
     };
 
 public:
@@ -309,14 +347,31 @@ public:
     {
         auto res = savePlayerInfo(fakePlayer);
         if (fakePlayer.online())
-            res &= savePlayerOnlineData(fakePlayer);
+            res &= savePlayerData(fakePlayer);
         return res;
     }
-    inline bool savePlayerOnlineData(FakePlayer const& fakePlayer)
+    inline bool savePlayerData(FakePlayer const& fakePlayer)
     {
         CsLockHolder lock(mLock);
         auto serverId = fakePlayer.getServerId();
         auto tag = fakePlayer.getOnlinePlayerTag();
+
+//#define TEST_SAVE_DATA
+#ifdef TEST_SAVE_DATA
+        debugLogNbt(*tag);
+        if (mStorage->set(serverId, tag->toBinaryNBT(true)))
+        {
+            auto newData = mStorage->get(serverId);
+            if (!newData)
+                DEBUGBREAK();
+            auto newTag = CompoundTag::fromBinaryNBT(*newData);
+            debugLogNbt(*newTag);
+            if (!tag->equals(*newTag))
+                DEBUGBREAK();
+            return true;
+        }
+        DEBUGBREAK();
+#endif // TEST_SAVE_DATA
         if (tag && mStorage->set(serverId, tag->toBinaryNBT(true)))
             return true;
         mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
@@ -325,8 +380,8 @@ public:
     };
     inline bool savePlayerTag(FakePlayer const& fakePlayer, CompoundTag const& tag)
     {
-        CsLockHolder lock(mLock);
         auto serverId = fakePlayer.getServerId();
+
         if (mStorage->set(serverId, const_cast<CompoundTag&>(tag).toBinaryNBT(true)))
             return true;
         mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
@@ -347,13 +402,13 @@ public:
     inline std::string getPlayerData(mce::UUID uuid)
     {
         CsLockHolder lock(mLock);
-        auto serverId = getServerId(uuid);
+        auto serverId = serverKey(uuid);
         std::string data = "";
         if (mStorage->get(serverId, data))
             return data;
 #ifdef DEBUG
-            // mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-            // DEBUGBREAK();
+             mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
+             DEBUGBREAK();
 #endif // DEBUG
         return "";
     };
@@ -375,7 +430,7 @@ public:
     inline std::shared_ptr<FakePlayer> getFakePlayer(mce::UUID uuid)
     {
         CsLockHolder lock(mLock);
-        auto storageId = getStorageId(uuid);
+        auto storageId = playerKey(uuid);
         std::string data = "";
         auto res = mStorage->get(storageId, data);
         if (!res)

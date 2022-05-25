@@ -1,4 +1,4 @@
-#include "pch.h"
+#include <pch.h>
 #include <EventAPI.h>
 #include "FakePlayerManager.h"
 #include "FakePlayerCommand.h"
@@ -12,7 +12,7 @@ extern bool exportRemoteCallApis();
 
 void entry()
 {
-    SkinHelper::init();
+    //SkinHelper::init();
     Event::RegCmdEvent::subscribe([](Event::RegCmdEvent ev) -> bool {
 #ifdef PLUGIN_IS_BETA
         TickingCommand::setup(*ev.mCommandRegistry);

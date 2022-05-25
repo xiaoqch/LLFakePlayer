@@ -209,7 +209,7 @@ std::pair<std::string, int> genTickingInfo(BlockSource const& region, BlockPos c
             playerChunkHashs.insert(ChunkPos(player->getPos()).hash());
         }
     }
-    auto& mainBlockSource = region.getDimensionConst().getBlockSourceFromMainChunkSource();
+    auto& mainBlockSource = region.getDimension().getBlockSourceFromMainChunkSource();
     for (auto cx = min_cx; cx <= max_cx; ++cx)
     {
         loadInfo << " \n";

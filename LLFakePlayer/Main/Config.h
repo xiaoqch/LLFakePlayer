@@ -6,8 +6,6 @@
 // Global Info
 #define GITHUB_LINK "https://github.com/xiaoqch/"
 
-//#define VERBOSE
-
 // Path
 #define LOG_DIR "./logs/"
 #define PLUGINS_DIR "./plugins/"
@@ -48,6 +46,13 @@ llfakeplayer gui - Show fake player manage gui
 // Switch
 #define ENABLE_LOG_FILE true
 #define ENABLE_CONFIG true
+
+#define VERBOSE
+
+#if !defined(DEBUG) && defined(VERBOSE)
+#undef VERBOSE
+#endif // !DEBUG
+
 
 namespace Config
 {
