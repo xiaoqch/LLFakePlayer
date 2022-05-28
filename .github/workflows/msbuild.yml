@@ -9,7 +9,7 @@ env:
   BUILD_CONFIGURATION: Release
   Platform: X64
   SDK_DIR: ./LiteLoaderSDK
-  BDS_VERSION: 1.18.31.04
+  BDS_VERSION: 1.18.33.02
 
 jobs:
   build:
