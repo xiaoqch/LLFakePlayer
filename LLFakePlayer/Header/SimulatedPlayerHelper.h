@@ -69,7 +69,11 @@ namespace SimulatedPlayerHelper
 inline SimulatedPlayer* create(std::string const& name)
 {
     std::string xuid = "";
-    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0, xuid);
+    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0
+#if BDS_VER > 11910
+                                                                                              xuid
+#endif
+    );
     auto player = ownerPtr.tryGetSimulatedPlayer();
 
     if (player /* && player->isSimulated() */)

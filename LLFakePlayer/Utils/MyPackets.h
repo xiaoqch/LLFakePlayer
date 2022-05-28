@@ -424,7 +424,9 @@ class PlayerActionPacket : public Packet
 {
 public:
     BlockPos mPosition;           // 48
+    #if BDS_VER > 11910
     BlockPos mPosition2;          // 60
+    #endif
     FaceID mBlockFace;            // 72
     PlayerActionType mActionType; // 76
     ActorRuntimeID mRuntimeID;    // 80
@@ -433,7 +435,7 @@ public:
     {
         std::ostringstream oss;
         oss << getPacketIdAndName(*this);
-        oss << KeyAndVal(mPosition) << KeyAndVal(mPosition2) << KeyAndVal(mBlockFace)
+        oss << KeyAndVal(mPosition) << KeyAndVal(mBlockFace)
             << KeyAndVal(mActionType) << KeyAndVal(mRuntimeID);
         return oss.str();
     }
@@ -697,6 +699,8 @@ static_assert(sizeof(TextPacket) == 168 + 48);
 
 static_assert(offsetof(EventPacket, mData.mType) == 56);
 static_assert(offsetof(ShowCreditsPacket, mState) == 56);
+#if BDS_VER > 11910
 static_assert(offsetof(PlayerActionPacket, mActionType) == 76);
+#endif
 
 void test();

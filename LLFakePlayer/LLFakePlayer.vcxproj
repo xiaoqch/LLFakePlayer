@@ -98,7 +98,8 @@ goto end
 :process
 cd /d "$(SolutionDir)\LiteLoaderSDK\Tools\"
 if exist "$(LocalDebuggerWorkingDirectory)\bedrock_server.pdb" (
-LibraryBuilder.exe -o ..\Lib\ "$(LocalDebuggerWorkingDirectory)"
+LibraryBuilder.exe -o ..\Lib\
+ "$(LocalDebuggerWorkingDirectory)"
 ) else (
 LibraryBuilder.exe -o ..\Lib\
 )
@@ -148,7 +149,8 @@ goto end
 :process
 cd /d "$(SolutionDir)\LiteLoaderSDK\Tools\"
 if exist "$(LocalDebuggerWorkingDirectory)\bedrock_server.pdb" (
-LibraryBuilder.exe -o ..\Lib\ "$(LocalDebuggerWorkingDirectory)"
+LibraryBuilder.exe -o ..\Lib\
+ "$(LocalDebuggerWorkingDirectory)"
 ) else (
 LibraryBuilder.exe -o ..\Lib\
 )
