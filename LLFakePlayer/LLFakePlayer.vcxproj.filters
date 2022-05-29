@@ -136,9 +136,6 @@
     <None Include="Resource\LLFakePlayer.aps">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="..\LiteLoaderSDK\Tools\LLPeEditor.exe">
-      <Filter>Lib</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource\LLFakePlayer.rc">

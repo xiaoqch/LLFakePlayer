@@ -32,9 +32,6 @@ void debugLogNbt(CompoundTag const& tag)
     ((PrettySnbtFormatConsole&)format).setMaxLevel(2);
     logger.info("Snbt: \n{}", tag.toPrettySNBT(format));
 }
-#else
-#define debugLogNbt(...) (void)0
-#endif // VERBOSE
 
 void logPlayerInfo(Player* player)
 {
@@ -79,6 +76,9 @@ void logPlayerInfo(Player* player)
         DEBUGL("{}: {}", k, value);
     }
 }
+#else
+#define debugLogNbt(...) (void)0
+#endif // VERBOSE
 
 // for import data from [FakePlayer](https://github.com/ddf8196/FakePlayer)
 mce::UUID JAVA::nameUUIDFromBytes(std::string const& name)
@@ -122,8 +122,9 @@ unsigned char FakePlayer::getNextClientSubID()
     return currentCliendSubId++;
 }
 
-FakePlayer::FakePlayer(std::string const& realName, mce::UUID uuid, time_t lastOnlineTime, bool autoLogin, FakePlayerManager* manager)
+FakePlayer::FakePlayer(std::string const& realName, std::string xuid, mce::UUID uuid, time_t lastOnlineTime, bool autoLogin, FakePlayerManager* manager)
     : mRealName(realName)
+    , mXUID(xuid)
     , mUUID(uuid)
     , mLastOnlineTime(lastOnlineTime)
     , mAutoLogin(autoLogin)
@@ -131,7 +132,6 @@ FakePlayer::FakePlayer(std::string const& realName, mce::UUID uuid, time_t lastO
 {
     if (!mManager)
         mManager = &FakePlayerManager::getManager();
-    mClientSubID = getNextClientSubID();
     DEBUGL("FakePlayer::FakePlayer({}, {}, {}, {}", realName, uuid.asString(), lastOnlineTime, autoLogin);
 }
 
@@ -145,6 +145,7 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
     try
     {
         std::string name = *tag.getStringTag("realName");
+        std::string xuid = *tag.getStringTag("xuid");
         std::string suuid = *tag.getStringTag("uuid");
         auto uuid = mce::UUID::fromString(suuid);
         time_t lastOnlineTime = *tag.getInt64Tag("lastOnlineTime");
@@ -154,7 +155,7 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
             logger.info("FakePlayer Data Error, name: {}, uuid: {}", name, suuid);
             return {};
         }
-        return std::make_shared<FakePlayer>(name, uuid, lastOnlineTime, autoLogin, manager);
+        return std::make_shared<FakePlayer>(name, xuid, uuid, lastOnlineTime, autoLogin, manager);
     }
     catch (...)
     {
@@ -361,7 +362,8 @@ FakePlayer* FakePlayerManager::create(std::string const& name, std::unique_ptr<C
     if (tryGetFakePlayer(name))
         return nullptr;
     auto uuid = mce::UUID::seedFromString(name);
-    auto player = std::make_shared<FakePlayer>(name, uuid, time(0), false);
+    auto xuid = std::to_string(do_hash(name.c_str()));
+    auto player = std::make_shared<FakePlayer>(name, xuid, uuid, time(0), false);
     mMapByName.try_emplace(name, player);
     mMap.try_emplace(uuid, player);
     mSortedNames.push_back(name);
@@ -560,6 +562,8 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
               bool unk_bool,
               class EntityContext& entity)
 {
+    ASSERT(subId == 0);
+    subId = 255;
     // fix Player subClinetId, for identify packet
     if (FakePlayer::mLoggingIn)
     {
@@ -569,11 +573,28 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
     }
     else if (Config::DebugMode)
         logger.warn("Unknown SimulatedPlayer creation detected, it is recommended to create an SimulatedPlayer through FakePlayerManager");
-    
-
+    if (subId == 255)
+    {
+        subId = FakePlayer::getNextClientSubID();
+    }
+    if (FakePlayer::mLoggingIn)
+    {
+        FakePlayer::mLoggingInPlayer->setClientSubId(subId);
+    }
     DEBUGW("SimulatedPlayer(level, sender, handler, blobCache, gameType = {}, nid, subId = {}, func, uuid = {}, clientId = {}, cert, unk_int = {}, unk_bool = {}, entity)",
            (int)gameType, (int)subId, uuid.asString(), clientId, unk_int, unk_bool);
     // fix client sub id for identify packet
+    auto ptr = (*(void***)&onPlayerLoadedCallback)[2];
+    auto rva = (uintptr_t)ptr - (uintptr_t)GetModuleHandleW(nullptr);
+    auto syms = dlsym_reverse((int)ptr);
+    for (auto& sym:syms)
+        logger.warn(sym);
+#ifdef DEBUG
+    onPlayerLoadedCallback = [=](ServerPlayer & sp)
+    {
+        onPlayerLoadedCallback(sp);
+    };
+#endif // DEBUG
 
     auto rtn = original(this, level, sender, handler, blobCache, gameType, nid, subId, onPlayerLoadedCallback, uuid, clientId, std::move(cert), unk_int, unk_bool, entity);
     // fix runtime id
@@ -625,7 +646,6 @@ THook(std::unique_ptr<CompoundTag>&, "?loadServerPlayerData@LevelStorage@@QEAA?A
     }
     return rtn;
 }
-#include <MC/PlayerListEntry.hpp>
 
 TInstanceHook(void, "?savePlayers@Level@@UEAAXXZ", Level)
 {

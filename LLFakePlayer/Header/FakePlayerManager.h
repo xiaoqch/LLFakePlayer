@@ -69,6 +69,7 @@ class FakePlayer
 {
     // Offline Data
     std::string mRealName;
+    std::string mXUID;
     mce::UUID mUUID;
     mutable time_t mLastOnlineTime;
     bool mAutoLogin = false;
@@ -93,7 +94,7 @@ class FakePlayer
     static unsigned char getNextClientSubID();
 
 public:
-    FPAPI FakePlayer(std::string const& realName, mce::UUID uuid, time_t lastOnlineTime = 0, bool autoLogin = false, FakePlayerManager* manager = nullptr);
+    FPAPI FakePlayer(std::string const& realName, std::string xuid, mce::UUID uuid, time_t lastOnlineTime = 0, bool autoLogin = false, FakePlayerManager* manager = nullptr);
     FPAPI ~FakePlayer();
     FPAPI static std::shared_ptr<FakePlayer> deserialize(CompoundTag const& tag, FakePlayerManager* manager = nullptr);
     FPAPI std::unique_ptr<CompoundTag> serialize() const;
@@ -107,6 +108,10 @@ public:
     inline unsigned char getClientSubId() const
     {
         return mClientSubID;
+    }
+    inline void setClientSubId(unsigned char subId)
+    {
+        mClientSubID = subId;
     }
 
     inline std::string const& getRealName() const

@@ -214,7 +214,6 @@ LibraryBuilder.exe -o ..\Lib\
     <Text Include="Resource\vftable_SimulatedPlayer.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\LiteLoaderSDK\Tools\LLPeEditor.exe" />
     <None Include="Resource\LLFakePlayer.aps" />
   </ItemGroup>
   <ItemGroup>
