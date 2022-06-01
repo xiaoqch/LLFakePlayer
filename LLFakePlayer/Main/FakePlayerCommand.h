@@ -1,6 +1,7 @@
 #pragma once
 class SimulatedPlayer;
 
+void updateLLFakePlayerSoftEnum();
 class FakePlayerCommand : public Command
 {
     static std::vector<std::string> mList;

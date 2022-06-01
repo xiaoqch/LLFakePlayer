@@ -11,6 +11,7 @@
 
 #define KEY_NO_TARGET "%commands.generic.noTargetMatch"
 #define KEY_TOO_MANY_TARGER "%commands.generic.tooManyTargets"
+#define FAKEPLAYER_LIST_SOFT_ENUM_NAME "LLFakePlayerList"
 
 #define AssertUniqueTarger(results)         \
     if (results.empty())                    \
@@ -163,8 +164,8 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
     actionWithName.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
     action.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
 
-    auto nameSoftEnum = registry.addSoftEnum("playerList", FakePlayerManager::getManager().getSortedNames());
-    auto nameSoftEnumParam = makeMandatory<CommandParameterDataType::SOFT_ENUM>(&FakePlayerCommand::name, "name", "playerList", &FakePlayerCommand::name_isSet);
+    auto nameSoftEnum = registry.addSoftEnum(FAKEPLAYER_LIST_SOFT_ENUM_NAME, FakePlayerManager::getManager().getSortedNames());
+    auto nameSoftEnumParam = makeMandatory<CommandParameterDataType::SOFT_ENUM>(&FakePlayerCommand::name, "name", FAKEPLAYER_LIST_SOFT_ENUM_NAME, &FakePlayerCommand::name_isSet);
     auto nameParam = makeMandatory(&FakePlayerCommand::name, "name", &FakePlayerCommand::name_isSet);
     auto nameOptional = makeOptional(&FakePlayerCommand::name, "name", &FakePlayerCommand::name_isSet);
     auto posParam = makeOptional(&FakePlayerCommand::commandPos, "position", &FakePlayerCommand::commandPos_isSet);
@@ -179,6 +180,11 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionWithName, nameSoftEnumParam);
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionCreate, nameParam);
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionImport, nameOptional);
+}
+
+void updateLLFakePlayerSoftEnum()
+{
+    Global<CommandRegistry>->setSoftEnumValues(FAKEPLAYER_LIST_SOFT_ENUM_NAME, FakePlayerManager::getManager().getSortedNames());
 }
 
 #ifdef PLUGIN_IS_BETA

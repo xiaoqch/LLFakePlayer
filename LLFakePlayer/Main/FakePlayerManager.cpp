@@ -357,6 +357,8 @@ FakePlayerManager& FakePlayerManager::getManager()
     return manager;
 }
 
+extern void updateLLFakePlayerSoftEnum();
+
 FakePlayer* FakePlayerManager::create(std::string const& name, std::unique_ptr<CompoundTag> playerData)
 {
     if (tryGetFakePlayer(name))
@@ -372,6 +374,8 @@ FakePlayer* FakePlayerManager::create(std::string const& name, std::unique_ptr<C
         mStorage->savePlayerTag(*player, *playerData);
     //player->login();
     auto ptr = player.get();
+    if (ptr)
+        updateLLFakePlayerSoftEnum();
     return ptr;
 }
 
@@ -388,6 +392,7 @@ bool FakePlayerManager::remove(std::string const& name)
         mMapByName.erase(name);
         mSortedNames.erase(std::find(mSortedNames.begin(), mSortedNames.end(), name));
         mStorage->removePlayerData(*fakePlayer);
+        updateLLFakePlayerSoftEnum();
         return true;
     }
     return false;
