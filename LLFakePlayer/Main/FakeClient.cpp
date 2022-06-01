@@ -117,8 +117,8 @@ struct fmt::formatter<Vec3>
     {
         // ctx.out() is an output iterator to write to.
         return presentation == 'f'
-                   ? format_to(ctx.out(), "({:.1f}, {:.1f}, {:.1f})", p.x, p.y, p.z)
-                   : format_to(ctx.out(), "({:.1e}, {:.1e}, {:.1e})", p.x, p.y, p.z);
+                   ? fmt::v8::format_to(ctx.out(), "({:.1f}, {:.1f}, {:.1f})", p.x, p.y, p.z)
+                   : fmt::v8::format_to(ctx.out(), "({:.1e}, {:.1e}, {:.1e})", p.x, p.y, p.z);
     }
 };
 template <>
@@ -135,7 +135,7 @@ struct fmt::formatter<BlockPos>
     template <typename FormatContext>
     auto format(const BlockPos& p, FormatContext& ctx) -> decltype(ctx.out())
     {
-        return format_to(ctx.out(), "({}, {}, {})", p.x, p.y, p.z);
+        return fmt::v8::format_to(ctx.out(), "({}, {}, {})", p.x, p.y, p.z);
     }
 };
 
@@ -149,26 +149,26 @@ class FakeSimulatedPlayer
 public:
     char player[ServerPlayerSize];
 
-    _BYTE unk9184                           = 0       ;                              // 9184 _updateMovement
-    Vec3 unk9188                                      ;                                                             // 9188 _updateMovement
-    _BYTE unk9200                           = 0       ;                              // 9200 _updateMovement,
-    Vec3 unk9204                                      ;                                                             // 9204 _updateMovement
-    _BYTE unk9216                           = 0       ;                              // 9216 _updateMovement
-    Vec3 unk9220                                      ;                                                             // 9220 _updateMovement
-    _BYTE unk9232                           = 0       ;                              // 9232 _updateMovement
-    BlockPos breakingBlockPos                         ;                                                // 9236 aiStep
-    _BYTE unk9248                           = 0       ;                              // 9248 aiStep
-    char filler9249[3]                                ;                                                       //
-    unsigned char unk9252                             ;                                                    // 9252 aiStep
-    _BYTE unk9253                           = 0       ;                              // 9253
-    std::vector<BlockPos> unk9256                     ;                                            // 9256 _updateMovement
-    _BYTE unk9280                           = 0       ;                              // 9280 _updateMovement, Navigate
-    _QWORD unk9288                          = 0i64    ;                           // 9288 _updateMovement
-    std::shared_ptr<void*> gametestHelper             ;                                    // 9296 getGameTestHelper
-    _QWORD unk9312                          = 0i64    ;                           // 9312
-    PlayerMovementSettings movementSettings = {}      ;                             // 9320
-    float mOldY                             = -FLT_MAX;                       // 9424 aiStep
-    float inputSpeed                        = 0       ;                              // 9428 _getInputSpeed
+    _BYTE unk9184 = 0;                            // 9184 _updateMovement
+    Vec3 unk9188;                                 // 9188 _updateMovement
+    _BYTE unk9200 = 0;                            // 9200 _updateMovement,
+    Vec3 unk9204;                                 // 9204 _updateMovement
+    _BYTE unk9216 = 0;                            // 9216 _updateMovement
+    Vec3 unk9220;                                 // 9220 _updateMovement
+    _BYTE unk9232 = 0;                            // 9232 _updateMovement
+    BlockPos breakingBlockPos;                    // 9236 aiStep
+    _BYTE unk9248 = 0;                            // 9248 aiStep
+    char filler9249[3];                           //
+    unsigned char unk9252;                        // 9252 aiStep
+    _BYTE unk9253 = 0;                            // 9253
+    std::vector<BlockPos> unk9256;                // 9256 _updateMovement
+    _BYTE unk9280 = 0;                            // 9280 _updateMovement, Navigate
+    _QWORD unk9288 = 0i64;                        // 9288 _updateMovement
+    std::shared_ptr<void*> gametestHelper;        // 9296 getGameTestHelper
+    _QWORD unk9312 = 0i64;                        // 9312
+    PlayerMovementSettings movementSettings = {}; // 9320
+    float mOldY = -FLT_MAX;                       // 9424 aiStep
+    float inputSpeed = 0;                         // 9428 _getInputSpeed
 
     inline void breakIfStateChanged()
     {
@@ -242,7 +242,7 @@ inline class Player* getPlayer(class mce::UUID const& a0)
 }
 inline bool isFakePlayer(Actor const& actor)
 {
-    return &actor && *(void**)&actor == dlsym_static("??_7SimulatedPlayer@@6B@");
+    return &actor && *(void**)&actor == dlsym("??_7SimulatedPlayer@@6B@");
 }
 } // namespace
 bool trySetOldY(SimulatedPlayer& sp, float y);
@@ -573,7 +573,7 @@ TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacke
             return;
 #endif // DEBUG
         }
-        catch (const std::exception& e)
+        catch (const std::exception& )
         {
             logger.error("Error in NetworkHandler::send");
             DEBUGBREAK();
@@ -636,7 +636,7 @@ TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@
                 return FakeClient::handlePacket((SimulatedPlayer*)sp, &pkt);
             }
         }
-        catch (const std::exception& e)
+        catch (const std::exception& )
         {
             logger.error("Failed to get player's client sub id from NetworkIdentifier for {}", pkt.getName());
             DEBUGBREAK();
@@ -658,7 +658,7 @@ TInstanceHook(void, "?tickWorld@Player@@UEAAXAEBUTick@@@Z",
     if (isFakePlayer(*this))
     {
         // Force to call the implementation of ServerPlayer
-        SymCallStatic("?_updateChunkPublisherView@ServerPlayer@@MEAAXAEBVVec3@@M@Z",
+        SymCall("?_updateChunkPublisherView@ServerPlayer@@MEAAXAEBVVec3@@M@Z",
                       void, ServerPlayer*, Vec3 const&, float)((ServerPlayer*)this, getPosition(), 16.0f);
     }
 }
@@ -671,7 +671,7 @@ TInstanceHook(std::shared_ptr<class ChunkViewSource>&, "?_createChunkSource@Simu
     //// ChunkSource::LoadMode : None(0) -> Deferred(1)
     // dAccess<int>(csPtr.get(), 56) = 1;
     // return csPtr;
-    return SymCallStatic("?_createChunkSource@Player@@MEAA?AV?$shared_ptr@VChunkViewSource@@@std@@AEAVChunkSource@@@Z",
+    return SymCall("?_createChunkSource@Player@@MEAA?AV?$shared_ptr@VChunkViewSource@@@std@@AEAVChunkSource@@@Z",
                          std::shared_ptr<class ChunkViewSource>&, SimulatedPlayer const&, std::shared_ptr<class ChunkViewSource>&, class ChunkSource&)(*this, res, chunkSource);
 }
 
@@ -832,7 +832,7 @@ TInstanceHook(ServerPlayer*, "??0ServerPlayer@@QEAA@AEAVLevel@@AEAVPacketSender@
 inline class ChunkSource& getChunkSource(BlockSource& bs)
 {
     class ChunkSource& (BlockSource::*rv)();
-    *((void**)&rv) = dlsym_static("?getChunkSource@BlockSource@@UEAAAEAVChunkSource@@XZ");
+    *((void**)&rv) = dlsym("?getChunkSource@BlockSource@@UEAAAEAVChunkSource@@XZ");
     return (bs.*rv)();
 }
 

@@ -12,6 +12,7 @@ extern bool exportRemoteCallApis();
 
 void entry()
 {
+    FakePlayerAPI::exportRemoteCallApis();
     //SkinHelper::init();
     Event::RegCmdEvent::subscribe([](Event::RegCmdEvent ev) -> bool {
 #ifdef PLUGIN_IS_BETA
@@ -47,5 +48,4 @@ void entry()
         return true;
     });
 #endif // PLUGIN_IS_BETA
-    FakePlayerAPI::exportRemoteCallApis();
 }

@@ -18,7 +18,9 @@ namespace FakePlayerAPI
 struct FakePlayerState
 {
     std::string name;
-    std::string uuid;
+    std::string xuid;
+    mce::UUID uuid;
+    std::string skinId;
     bool online;
 };
 

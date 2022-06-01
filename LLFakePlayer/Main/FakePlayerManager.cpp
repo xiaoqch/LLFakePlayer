@@ -488,7 +488,7 @@ bool FakePlayerManager::swapData(FakePlayer& fakePlayer, Player& player) const
     auto fpTag = fakePlayer.getPlayerTag();
     syncKey(*fpTag, *plTag);
 
-    auto vftbl = dlsym_static("??_7DefaultDataLoadHelper@@6B@");
+    auto vftbl = dlsym("??_7DefaultDataLoadHelper@@6B@");
     // auto helper = &vftbl;
     //player.remove();
     player.load(*fpTag, *(DataLoadHelper*)&vftbl);
@@ -584,12 +584,12 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
     DEBUGW("SimulatedPlayer(level, sender, handler, blobCache, gameType = {}, nid, subId = {}, func, uuid = {}, clientId = {}, cert, unk_int = {}, unk_bool = {}, entity)",
            (int)gameType, (int)subId, uuid.asString(), clientId, unk_int, unk_bool);
     // fix client sub id for identify packet
+#ifdef DEBUG
     auto ptr = (*(void***)&onPlayerLoadedCallback)[2];
     auto rva = (uintptr_t)ptr - (uintptr_t)GetModuleHandleW(nullptr);
     auto syms = dlsym_reverse((int)ptr);
-    for (auto& sym:syms)
+    for (auto& sym : syms)
         logger.warn(sym);
-#ifdef DEBUG
     onPlayerLoadedCallback = [=](ServerPlayer & sp)
     {
         onPlayerLoadedCallback(sp);

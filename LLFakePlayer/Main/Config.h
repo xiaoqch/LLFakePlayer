@@ -17,7 +17,6 @@
 
 // Tools
 #include "Utils/DebugHelper.h"
-#include "Utils/DlsymStatic.h"
 
 // Global logger
 extern Logger logger;

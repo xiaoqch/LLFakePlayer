@@ -631,7 +631,7 @@ class SetActorDataPacket : public Packet
 {
 public:
     ActorRuntimeID mRuntimeId;
-    Tick mTick = {0};
+    Tick mTick;
     std::vector<std::unique_ptr<DataItem>> mDataItems; // 64
 
     inline std::string toDebugString() const
