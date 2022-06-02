@@ -151,8 +151,8 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
         time_t lastOnlineTime = *tag.getInt64Tag("lastOnlineTime");
         bool autoLogin = *tag.getByteTag("autoLogin");
 #ifdef DEBUG
-        ASSERT(xuid == std::to_string(do_hash(name.c_str())), "xuid not match");
-        ASSERT(uuid == mce::UUID::seedFromString(name), "UUID not match");
+        ASSERT(xuid == std::to_string(do_hash(name.c_str())));
+        ASSERT(uuid == mce::UUID::seedFromString(name));
 #endif // DEBUG
         if (name.empty() || !uuid)
         {
@@ -195,43 +195,40 @@ struct LoginHolder
 
 bool FakePlayer::login()
 {
-    if (mLoggingIn || mOnline)
+    if (mLoggingIn || isOnline())
         return false;
     LoginHolder holder(this);
-    mPlayer = SimulatedPlayerHelper::create(mRealName);
-    if (!mPlayer)
+    auto player = SimulatedPlayerHelper::create(mRealName);
+    if (!player)
     {
         mLoggingIn = false;
         mLoggingInPlayer = nullptr;
         return false;
     }
-    mUniqueID = mPlayer->getUniqueID();
-    mClientSubID = mPlayer->getClientSubId();
+    mUniqueID = player->getUniqueID();
+    mClientSubID = player->getClientSubId();
     time(&mLastOnlineTime);
 
     mLoggingIn = false;
     mLoggingInPlayer = nullptr;
     // FakePlayerManager::getManager().saveData(*this);
-    mOnline = true;
 #ifdef DEBUG
-    debugLogNbt(*mPlayer->getNbt());
+    debugLogNbt(*player->getNbt());
 #endif // DEBUG
     return true;
 };
 
 bool FakePlayer::logout(bool save)
 {
-    if (!mOnline || !mPlayer)
+    if (!isOnline())
         return false;
     if (save)
     {
         time(&mLastOnlineTime);
         FakePlayerManager::getManager().saveData(*this);
     }
-    mPlayer->simulateDisconnect();
-    mOnline = false;
-    mPlayer = nullptr;
-    //mClientSubID = -1;
+    getPlayer()->simulateDisconnect();
+    mClientSubID = -1;
     return true;
 }
 
@@ -257,11 +254,11 @@ std::string FakePlayer::getStorageId() const
 
 std::unique_ptr<CompoundTag> FakePlayer::getPlayerTag() const
 {
-    if (!mOnline || !mPlayer)
+    if (!isOnline())
     {
         return getStoragePlayerTag();
     }
-    return CompoundTag::fromPlayer(mPlayer);
+    return CompoundTag::fromPlayer(getPlayer());
 }
 
 std::unique_ptr<CompoundTag> FakePlayer::getStoragePlayerTag() const
@@ -271,9 +268,9 @@ std::unique_ptr<CompoundTag> FakePlayer::getStoragePlayerTag() const
 
 std::unique_ptr<CompoundTag> FakePlayer::getOnlinePlayerTag() const
 {
-    if (!mPlayer)
+    if (!isOnline())
         return {};
-    return CompoundTag::fromPlayer(mPlayer);
+    return CompoundTag::fromPlayer(getPlayer());
 }
 
 #pragma endregion
@@ -420,8 +417,8 @@ bool FakePlayerManager::remove(std::string const& name)
 SimulatedPlayer* FakePlayerManager::login(std::string const& name) const
 {
     auto fakePlayer = tryGetFakePlayer(name);
-    if (fakePlayer && !fakePlayer->mOnline && fakePlayer->login())
-        return fakePlayer->mPlayer;
+    if (fakePlayer && !fakePlayer->isOnline() && fakePlayer->login())
+        return fakePlayer->getPlayer();
     return nullptr;
 }
 
@@ -528,12 +525,13 @@ bool FakePlayerManager::swapData(FakePlayer& fakePlayer, Player& player) const
     if (fakePlayer.isOnline())
     {
         //fakePlayer.mPlayer->remove();
-        fakePlayer.mPlayer->load(*plTag, *(DataLoadHelper*)&vftbl);
-        fakePlayer.mPlayer->setUniqueID(plTag->getInt64("UniqueID"));
-        DEBUGW("FakePlayer: before - after:\n{}", compareTag(*plTag, *fakePlayer.mPlayer->getNbt()));
-        fakePlayer.mPlayer->reload();
-        fakePlayer.mPlayer->_sendDirtyActorData();
-        fakePlayer.mPlayer->sendInventory(true);
+        auto sp = fakePlayer.getPlayer();
+        sp->load(*plTag, *(DataLoadHelper*)&vftbl);
+        sp->setUniqueID(plTag->getInt64("UniqueID"));
+        DEBUGW("FakePlayer: before - after:\n{}", compareTag(*plTag, *sp->getNbt()));
+        sp->reload();
+        sp->_sendDirtyActorData();
+        sp->sendInventory(true);
     }
     else
     {

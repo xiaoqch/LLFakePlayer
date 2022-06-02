@@ -234,12 +234,6 @@ constexpr size_t mGameMode = 4680;                   // ??
 }
 namespace
 {
-inline class Player* getPlayer(class mce::UUID const& a0)
-{
-    class Player* (Level::*rv)(class mce::UUID const&);
-    *((void**)&rv) = dlsym("?getPlayer@Level@@UEBAPEAVPlayer@@AEBVUUID@mce@@@Z");
-    return (Global<Level>->*rv)(std::forward<class mce::UUID const&>(a0));
-}
 inline bool isFakePlayer(Actor const& actor)
 {
     return &actor && *(void**)&actor == dlsym("??_7SimulatedPlayer@@6B@");

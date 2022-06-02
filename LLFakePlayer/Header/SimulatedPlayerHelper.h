@@ -5,6 +5,18 @@
 #include <MC/Level.hpp>
 #include <MC/StackResultStorageEntity.hpp>
 #include <MC/OwnerStorageEntity.hpp>
+
+
+inline class SimulatedPlayer* getSimulatedPlayerByUuid(class mce::UUID const& a0)
+{
+    class Player* (Level::*rv)(class mce::UUID const&) const;
+    *((void**)&rv) = dlsym("?getPlayer@Level@@UEBAPEAVPlayer@@AEBVUUID@mce@@@Z");
+    auto sp = (Global<Level>->*rv)(std::forward<class mce::UUID const&>(a0));
+    if (sp && sp->isSimulatedPlayer())
+        return static_cast<SimulatedPlayer*>(sp);
+    return nullptr;
+}
+
 namespace SimulatedPlayerHelper
 {
 SimulatedPlayer* create(std::string const& name);

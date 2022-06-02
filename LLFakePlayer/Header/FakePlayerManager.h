@@ -7,6 +7,7 @@
 #include "Utils/ColorHelper.h"
 #include <functional>
 #include <KVDBAPI.h>
+#include "SimulatedPlayerHelper.h"
 
 #define FPPUBLIC public
 
@@ -77,8 +78,8 @@ class FakePlayer
 
     // Online Data
     ActorUniqueID mUniqueID;
-    bool mOnline = false;
-    SimulatedPlayer* mPlayer = nullptr;
+    //bool mOnline = false;
+    //SimulatedPlayer* mPlayer = nullptr;
     unsigned char mClientSubID = -1;
 
     friend class FakePlayerManager;
@@ -130,11 +131,11 @@ public:
     }
     inline bool isOnline() const
     {
-        return mOnline;
+        return getSimulatedPlayerByUuid(mUUID) != nullptr;
     }
     inline SimulatedPlayer* getPlayer() const
     {
-        return mPlayer;
+        return getSimulatedPlayerByUuid(mUUID);
     }
 
     FPAPI std::unique_ptr<CompoundTag> getPlayerTag() const;
