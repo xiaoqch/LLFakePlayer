@@ -162,7 +162,8 @@ std::vector<std::string> removeAll()
 {
     DEBUGL(__FUNCTION__);
     std::vector<std::string> list;
-    for (auto& name : FakePlayerManager::getManager().getSortedNames())
+    auto names = FakePlayerManager::getManager().getSortedNames();
+    for (auto& name : names)
     {
         if (FakePlayerManager::getManager().remove(name))
             list.emplace_back(name);
