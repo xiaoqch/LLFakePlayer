@@ -9,6 +9,8 @@
 
 inline class SimulatedPlayer* getSimulatedPlayerByUuid(class mce::UUID const& a0)
 {
+    if (!Global<Level>)
+        return nullptr;
     class Player* (Level::*rv)(class mce::UUID const&) const;
     *((void**)&rv) = dlsym("?getPlayer@Level@@UEBAPEAVPlayer@@AEBVUUID@mce@@@Z");
     auto sp = (Global<Level>->*rv)(std::forward<class mce::UUID const&>(a0));

@@ -8,7 +8,8 @@
 #endif // !FPAPI
 
 // example getVersionString = ImportFakePlayerAPI
-#define ImportFakePlayerAPI(name) RemoteCall::importAs<decltype(FakePlayerAPI::name)>("FakePlayerAPI", #name)
+#define LLFAKEPLAYER_NAMESPACE "FakePlayerAPI"
+#define ImportFakePlayerAPI(name) RemoteCall::importAs<decltype(FakePlayerAPI::name)>(LLFAKEPLAYER_NAMESPACE, #name)
 
 class SimulatedPlayer;
 class FakePlayer;
@@ -23,8 +24,22 @@ struct FakePlayerState
     mce::UUID uuid;
     std::string skinId = "";
     bool online =false;
+    bool autoLogin = false;
     
     FPAPI std::string toJson();
+};
+
+struct Event
+{
+    enum class EventType
+    {
+        Add,
+        Remove,
+        Login,
+        Logout,
+        Change,
+    } mEvent;
+    FakePlayer& mPlayer;
 };
 
 FPAPI std::vector<int> getVersion();
@@ -47,5 +62,7 @@ FPAPI std::vector<std::string> loginAll();
 FPAPI std::vector<std::string> logoutAll();
 FPAPI std::vector<std::string> removeAll();
 FPAPI bool importDDFFakePlayer(std::string const& name);
+FPAPI size_t subscribeEvent(std::function<void(Event&)> const& handler);
+FPAPI bool unsubscribeEvent(size_t id);
 
 };

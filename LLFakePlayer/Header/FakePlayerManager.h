@@ -8,6 +8,7 @@
 #include <functional>
 #include <KVDBAPI.h>
 #include "SimulatedPlayerHelper.h"
+#include "../FakePlayerAPI.h"
 
 #define FPPUBLIC public
 
@@ -143,7 +144,6 @@ public:
     FPAPI std::unique_ptr<CompoundTag> getOnlinePlayerTag() const;
     
 };
-
 class FakePlayerManager
 {
 public:
@@ -153,14 +153,61 @@ public:
     std::unordered_map<std::string, std::shared_ptr<FakePlayer>> mMapByName;
     std::vector<std::string> mSortedNames;
 
+    std::unordered_map<size_t,std::function<void(FakePlayerAPI::Event&)>> mEventHandlers;
+    inline size_t subscribeEvent(std::function<void(FakePlayerAPI::Event&)> const& handler)
+    {
+        static size_t id = 0;
+        mEventHandlers[id] = handler;
+        return id++;
+    }
+    inline bool unsubscribeEvent(size_t id)
+    {
+        return mEventHandlers.erase(id) > 0;
+    }
+    inline void callEvent(FakePlayerAPI::Event::EventType type, FakePlayer& fp)
+    {
+        if (!mEventHandlers.empty())
+        {
+            FakePlayerAPI::Event ev{type, fp};
+            for (auto& handler : mEventHandlers)
+                handler.second(ev);
+        }
+    }
+    inline void onAdd(FakePlayer&fp)
+    {
+        callEvent(FakePlayerAPI::Event::EventType::Add, fp);
+    }
+    inline void onRemove(FakePlayer&fp)
+    {
+        callEvent(FakePlayerAPI::Event::EventType::Remove, fp);
+    }
+    inline void onLogin(FakePlayer&fp)
+    {
+        callEvent(FakePlayerAPI::Event::EventType::Login, fp);
+    }
+    inline void onLogout(FakePlayer&fp)
+    {
+        callEvent(FakePlayerAPI::Event::EventType::Logout, fp);
+    }
+    inline void onChange(FakePlayer&fp)
+    {
+        callEvent(FakePlayerAPI::Event::EventType::Change, fp);
+    }
+    
+
 private:
     FPAPI FakePlayerManager(std::string const& dbPath);
     FPAPI ~FakePlayerManager();
-    FakePlayerManager(const FakePlayerManager&) = delete;
-    FakePlayerManager& operator=(const FakePlayerManager&) = delete;
+    FakePlayerManager() = delete;
+    FakePlayerManager(FakePlayerManager const&) = delete;
+    FakePlayerManager& operator=(FakePlayerManager const&) = delete;
+    FakePlayerManager(FakePlayerManager&&) = delete;
+    FakePlayerManager& operator=(FakePlayerManager&&) = delete;
+
+    void initFakePlayers();
+    void initEventListeners();
 
 public:
-    void initFakePlayers();
     FPAPI bool savePlayers(bool onlineOnly = false);
     FPAPI bool saveData(mce::UUID uuid);
     FPAPI bool saveData(FakePlayer const& fakePlayer);
@@ -175,7 +222,7 @@ public:
         return mSortedNames;
     }
     FPAPI static FakePlayerManager& getManager();
-    inline void forEachFakePlayer(std::function<void(std::string_view name, FakePlayer const& fakePlayer)> callback) const
+    inline void forEachFakePlayer(std::function<void(std::string_view name, FakePlayer& fakePlayer)> callback) const
     {
         for (auto& [name, fakePlayer] : mMapByName)
         {

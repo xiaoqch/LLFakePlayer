@@ -13,6 +13,7 @@
 #include "Utils/ColorHelper.h"
 #include <LoggerAPI.h>
 #include "Utils/MyPackets.h"
+#include <EventAPI.h>
 
 #ifdef VERBOSE
 #include <MC/PrettySnbtFormat.hpp>
@@ -197,6 +198,11 @@ bool FakePlayer::login()
 {
     if (mLoggingIn || isOnline())
         return false;
+    if (Level::getPlayer(mRealName))
+    {
+        logger.warn("Player with same name \"{}\" already online", mRealName);
+        return false;
+    }
     LoginHolder holder(this);
     auto player = SimulatedPlayerHelper::create(mRealName);
     if (!player)
@@ -285,6 +291,7 @@ FakePlayerManager::FakePlayerManager(std::string const& dbPath)
     mStorage = std::make_unique<FakePlayerStorage>(dbPath, this);
 
     initFakePlayers();
+    initEventListeners();
 }
 FakePlayerManager::~FakePlayerManager()
 {
@@ -366,6 +373,25 @@ void FakePlayerManager::initFakePlayers()
         mSortedNames.push_back(std::string(name));
     }
 }
+void FakePlayerManager::initEventListeners()
+{
+    Event::PlayerJoinEvent::subscribe_ref([](Event::PlayerJoinEvent& ev) {
+        auto& player = ev.mPlayer;
+        auto& manager = FakePlayerManager::getManager();
+        auto fakePlayer = manager.tryGetFakePlayer(*player);
+        if (fakePlayer)
+            manager.onLogin(*fakePlayer);
+        return true;
+        });
+    Event::PlayerLeftEvent::subscribe_ref([](Event::PlayerLeftEvent& ev) {
+        auto& player = ev.mPlayer;
+        auto& manager = FakePlayerManager::getManager();
+        auto fakePlayer = manager.tryGetFakePlayer(*player);
+        if (fakePlayer)
+            manager.onLogout(*fakePlayer);
+        return true;
+        });
+}
 
 FakePlayerManager& FakePlayerManager::getManager()
 {
@@ -392,6 +418,7 @@ FakePlayer* FakePlayerManager::create(std::string const& name, std::unique_ptr<C
     auto ptr = player.get();
     if (ptr)
         updateLLFakePlayerSoftEnum();
+    onAdd(*player);
     return ptr;
 }
 
@@ -409,6 +436,7 @@ bool FakePlayerManager::remove(std::string const& name)
         mSortedNames.erase(std::find(mSortedNames.begin(), mSortedNames.end(), name));
         mStorage->removePlayerData(*fakePlayer);
         updateLLFakePlayerSoftEnum();
+        onRemove(*fakePlayer);
         return true;
     }
     return false;

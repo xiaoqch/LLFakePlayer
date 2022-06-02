@@ -136,6 +136,7 @@
     <None Include="Resource\LLFakePlayer.aps">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource\LLFakePlayer.rc">

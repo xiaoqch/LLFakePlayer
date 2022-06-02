@@ -214,6 +214,7 @@ LibraryBuilder.exe -o ..\Lib\
     <Text Include="Resource\vftable_SimulatedPlayer.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="Resource\LLFakePlayer.aps" />
   </ItemGroup>
   <ItemGroup>
