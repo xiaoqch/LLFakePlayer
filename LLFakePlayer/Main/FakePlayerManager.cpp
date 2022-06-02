@@ -150,6 +150,10 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
         auto uuid = mce::UUID::fromString(suuid);
         time_t lastOnlineTime = *tag.getInt64Tag("lastOnlineTime");
         bool autoLogin = *tag.getByteTag("autoLogin");
+#ifdef DEBUG
+        ASSERT(xuid == std::to_string(do_hash(name.c_str())), "xuid not match");
+        ASSERT(uuid == mce::UUID::seedFromString(name), "UUID not match");
+#endif // DEBUG
         if (name.empty() || !uuid)
         {
             logger.info("FakePlayer Data Error, name: {}, uuid: {}", name, suuid);
@@ -169,16 +173,31 @@ std::unique_ptr<CompoundTag> FakePlayer::serialize() const
     auto tag = CompoundTag::create();
     tag->putString("realName", mRealName);
     tag->putString("uuid", mUUID.asString());
+    tag->putString("xuid", mXUID);
     tag->putInt64("lastOnlineTime", mLastOnlineTime);
     tag->putBoolean("autoLogin", mAutoLogin);
     return std::move(tag);
 }
+
+struct LoginHolder
+{
+    LoginHolder(FakePlayer* fp)
+    {
+        FakePlayer::mLoggingIn = true;
+        FakePlayer::mLoggingInPlayer = fp;
+    }
+    ~LoginHolder()
+    {
+        FakePlayer::mLoggingIn = false;
+        FakePlayer::mLoggingInPlayer = nullptr;
+    }
+};
+
 bool FakePlayer::login()
 {
     if (mLoggingIn || mOnline)
         return false;
-    mLoggingIn = true;
-    mLoggingInPlayer = this;
+    LoginHolder holder(this);
     mPlayer = SimulatedPlayerHelper::create(mRealName);
     if (!mPlayer)
     {
@@ -216,7 +235,7 @@ bool FakePlayer::logout(bool save)
     return true;
 }
 
-mce::UUID const& FakePlayer::getUUID() const
+mce::UUID const& FakePlayer::getUuid() const
 {
     return mUUID;
 }
@@ -279,7 +298,7 @@ bool FakePlayerManager::savePlayers(bool onlineOnly)
     auto res = true;
     for (auto& [uuid, player] : mMap)
     {
-        if (player->online() && !saveData(*player))
+        if (player->isOnline() && !saveData(*player))
             res = false;
     }
     return res;
@@ -294,7 +313,7 @@ bool FakePlayerManager::saveData(mce::UUID uuid)
 }
 bool FakePlayerManager::saveData(FakePlayer const& fakePlayer)
 {
-    if (fakePlayer.online())
+    if (fakePlayer.isOnline())
         time(&fakePlayer.mLastOnlineTime);
     return mStorage->savePlayer(fakePlayer);
 }
@@ -384,9 +403,9 @@ bool FakePlayerManager::remove(std::string const& name)
     auto fakePlayer = tryGetFakePlayer(name);
     if (fakePlayer)
     {
-        if (fakePlayer->online())
+        if (fakePlayer->isOnline())
             fakePlayer->logout(false);
-        auto uuid = fakePlayer->getUUID();
+        auto uuid = fakePlayer->getUuid();
         auto serverId = fakePlayer->getServerId();
         mMap.erase(uuid);
         mMapByName.erase(name);
@@ -506,7 +525,7 @@ bool FakePlayerManager::swapData(FakePlayer& fakePlayer, Player& player) const
     player.sendNetworkPacket(pkt);
     player.sendInventory(true);
 
-    if (fakePlayer.online())
+    if (fakePlayer.isOnline())
     {
         //fakePlayer.mPlayer->remove();
         fakePlayer.mPlayer->load(*plTag, *(DataLoadHelper*)&vftbl);
@@ -573,7 +592,7 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
     if (FakePlayer::mLoggingIn)
     {
         auto fp = FakePlayer::mLoggingInPlayer;
-        uuid = fp->getUUID();
+        uuid = fp->getUuid();
         subId = fp->getClientSubId();
     }
     else if (Config::DebugMode)
@@ -638,8 +657,8 @@ THook(std::unique_ptr<CompoundTag>&, "?loadServerPlayerData@LevelStorage@@QEAA?A
         {
             DEBUGW("Replace SimulatedPlayer data");
             auto& fp = FakePlayer::mLoggingInPlayer;
-            DEBUGW("Uuids: {}, {}", player.getUuid(), fp->getUUID().asString());
-            ASSERT(player.getUuid() == fp->getUUID().asString());
+            DEBUGW("Uuids: {}, {}", player.getUuid(), fp->getUuid().asString());
+            ASSERT(player.getUuid() == fp->getUuid().asString());
             auto playerTag = FakePlayer::mLoggingInPlayer->getStoragePlayerTag();
 #ifdef DEBUG
             if (playerTag)

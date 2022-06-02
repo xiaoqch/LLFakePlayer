@@ -68,6 +68,8 @@ namespace SimulatedPlayerHelper
 // Rewrite SimulatedPlayer::create(std::string const & name,class BlockPos const & bpos,class AutomaticID<class Dimension,int> dimId,class ServerNetworkHandler & handler)
 inline SimulatedPlayer* create(std::string const& name)
 {
+    if (Global<ServerNetworkHandler> == nullptr)
+        return nullptr;
     std::string xuid = "";
     OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0
 #if BDS_VER > 11910

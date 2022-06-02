@@ -11,6 +11,7 @@
 #define ImportFakePlayerAPI(name) RemoteCall::importAs<decltype(FakePlayerAPI::name)>("FakePlayerAPI", #name)
 
 class SimulatedPlayer;
+class FakePlayer;
 
 
 namespace FakePlayerAPI
@@ -20,16 +21,20 @@ struct FakePlayerState
     std::string name;
     std::string xuid;
     mce::UUID uuid;
-    std::string skinId;
-    bool online;
+    std::string skinId = "";
+    bool online =false;
+    
+    FPAPI std::string toJson();
 };
 
 FPAPI std::vector<int> getVersion();
 FPAPI std::string getVersionString();
 
 FPAPI std::vector<SimulatedPlayer*> getOnlineList();
+FPAPI FakePlayerState getState(std::string const& name);
+FPAPI std::string getStateJson(std::string const& name);
 FPAPI std::vector<FakePlayerState> getAllStates();
-FPAPI std::string getAllStatesJson();
+FPAPI std::string getAllStateJson();
 
 FPAPI std::vector<std::string> list();
 FPAPI SimulatedPlayer* login(std::string const& name);

@@ -43,7 +43,7 @@ void FakePlayerCommand::execute(CommandOrigin const& origin, CommandOutput& outp
                 if (!first)
                     playerList += ", ";
                 first = false;
-                playerList += fp->online() ? ColorHelper::green(fp->getRealName()) : fp->getRealName();
+                playerList += fp->isOnline() ? ColorHelper::green(fp->getRealName()) : fp->getRealName();
                 output.success();
             }
             if (playerList.empty())
@@ -78,7 +78,7 @@ void FakePlayerCommand::execute(CommandOrigin const& origin, CommandOutput& outp
             auto fakePlayer = manager.tryGetFakePlayer(name);
             if (!fakePlayer)
                 output.errorf("Fake Player {} not found", name);
-            else if (fakePlayer->online())
+            else if (fakePlayer->isOnline())
                 output.errorf("Fake Player {} already online", name);
             else if (fakePlayer->login())
                 output.successf("Fake Player {} login success", name);

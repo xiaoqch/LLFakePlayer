@@ -84,16 +84,14 @@ class FakePlayer
     friend class FakePlayerManager;
     friend class FakePlayerStorage;
 
-    FPPUBLIC :
-
-        static bool mLoggingIn;
+public:
+    static bool mLoggingIn;
     static FakePlayer* mLoggingInPlayer;
     static NetworkIdentifier mNetworkID;
     static unsigned char mMaxClientSubID;
 
     static unsigned char getNextClientSubID();
 
-public:
     FPAPI FakePlayer(std::string const& realName, std::string xuid, mce::UUID uuid, time_t lastOnlineTime = 0, bool autoLogin = false, FakePlayerManager* manager = nullptr);
     FPAPI ~FakePlayer();
     FPAPI static std::shared_ptr<FakePlayer> deserialize(CompoundTag const& tag, FakePlayerManager* manager = nullptr);
@@ -101,7 +99,7 @@ public:
 
     FPAPI bool login();
     FPAPI bool logout(bool save = true);
-    FPAPI mce::UUID const& getUUID() const;
+    FPAPI mce::UUID const& getUuid() const;
     FPAPI std::string getUUIDString() const;
     FPAPI std::string getServerId() const;
     FPAPI std::string getStorageId() const;
@@ -118,14 +116,31 @@ public:
     {
         return mRealName;
     }
-    inline bool online() const
+    inline std::string const& getXuid() const
+    {
+        return mXUID;
+    }
+    inline time_t getLastOnlineTime() const
+    {
+        return mLastOnlineTime;
+    }
+    inline bool isAutoLogin() const
+    {
+        return mAutoLogin;
+    }
+    inline bool isOnline() const
     {
         return mOnline;
+    }
+    inline SimulatedPlayer* getPlayer() const
+    {
+        return mPlayer;
     }
 
     FPAPI std::unique_ptr<CompoundTag> getPlayerTag() const;
     FPAPI std::unique_ptr<CompoundTag> getStoragePlayerTag() const;
     FPAPI std::unique_ptr<CompoundTag> getOnlinePlayerTag() const;
+    
 };
 
 class FakePlayerManager
@@ -351,7 +366,7 @@ public:
     inline bool savePlayer(FakePlayer const& fakePlayer)
     {
         auto res = savePlayerInfo(fakePlayer);
-        if (fakePlayer.online())
+        if (fakePlayer.isOnline())
             res &= savePlayerData(fakePlayer);
         return res;
     }
@@ -419,7 +434,7 @@ public:
     };
     inline std::string getPlayerData(FakePlayer const& fakePlayer)
     {
-        return getPlayerData(fakePlayer.getUUID());
+        return getPlayerData(fakePlayer.getUuid());
     }
     inline std::unique_ptr<CompoundTag> getPlayerTag(mce::UUID uuid)
     {
@@ -430,7 +445,7 @@ public:
     };
     inline std::unique_ptr<CompoundTag> getPlayerTag(FakePlayer const& fakePlayer)
     {
-        return getPlayerTag(fakePlayer.getUUID());
+        return getPlayerTag(fakePlayer.getUuid());
     }
     inline std::shared_ptr<FakePlayer> getFakePlayer(mce::UUID uuid)
     {
