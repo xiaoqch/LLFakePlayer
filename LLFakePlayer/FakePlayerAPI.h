@@ -25,6 +25,7 @@ struct FakePlayerState
     std::string skinId = "";
     bool online =false;
     bool autoLogin = false;
+    time_t lastUpdateTime;
     
     FPAPI std::string toJson();
 };

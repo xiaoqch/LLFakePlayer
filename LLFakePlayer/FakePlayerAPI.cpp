@@ -26,11 +26,12 @@ std::string StateToJson(FakePlayerState const& state, nlohmann::json& json)
     json["skinId"] = state.skinId;
     json["online"] = state.online;
     json["autoLogin"] = state.autoLogin;
+    json["lastUpdateTime"] = state.lastUpdateTime;
     return json.dump();
 }
 FakePlayerState StateFromFakePlayer(FakePlayer const& fp)
 {
-    return {fp.getRealName(), fp.getXuid(), fp.getUuid(), "", fp.isOnline(), fp.isAutoLogin()};
+    return {fp.getRealName(), fp.getXuid(), fp.getUuid(), "", fp.isOnline(), fp.isAutoLogin(), fp.getLastUpdateTime()};
 }
 
 

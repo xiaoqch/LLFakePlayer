@@ -123,17 +123,17 @@ unsigned char FakePlayer::getNextClientSubID()
     return currentCliendSubId++;
 }
 
-FakePlayer::FakePlayer(std::string const& realName, std::string xuid, mce::UUID uuid, time_t lastOnlineTime, bool autoLogin, FakePlayerManager* manager)
+FakePlayer::FakePlayer(std::string const& realName, std::string xuid, mce::UUID uuid, time_t lastUpdateTime, bool autoLogin, FakePlayerManager* manager)
     : mRealName(realName)
     , mXUID(xuid)
     , mUUID(uuid)
-    , mLastOnlineTime(lastOnlineTime)
+    , mLastUpdateTime(lastUpdateTime)
     , mAutoLogin(autoLogin)
     , mManager(manager)
 {
     if (!mManager)
         mManager = &FakePlayerManager::getManager();
-    DEBUGL("FakePlayer::FakePlayer({}, {}, {}, {}", realName, uuid.asString(), lastOnlineTime, autoLogin);
+    DEBUGL("FakePlayer::FakePlayer({}, {}, {}, {}", realName, uuid.asString(), lastUpdateTime, autoLogin);
 }
 
 FakePlayer::~FakePlayer()
@@ -149,7 +149,7 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
         std::string xuid = *tag.getStringTag("xuid");
         std::string suuid = *tag.getStringTag("uuid");
         auto uuid = mce::UUID::fromString(suuid);
-        time_t lastOnlineTime = *tag.getInt64Tag("lastOnlineTime");
+        time_t lastUpdateTime = *tag.getInt64Tag("lastUpdateTime");
         bool autoLogin = *tag.getByteTag("autoLogin");
 #ifdef DEBUG
         ASSERT(xuid == std::to_string(do_hash(name.c_str())));
@@ -160,7 +160,7 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
             logger.info("FakePlayer Data Error, name: {}, uuid: {}", name, suuid);
             return {};
         }
-        return std::make_shared<FakePlayer>(name, xuid, uuid, lastOnlineTime, autoLogin, manager);
+        return std::make_shared<FakePlayer>(name, xuid, uuid, lastUpdateTime, autoLogin, manager);
     }
     catch (...)
     {
@@ -175,7 +175,7 @@ std::unique_ptr<CompoundTag> FakePlayer::serialize() const
     tag->putString("realName", mRealName);
     tag->putString("uuid", mUUID.asString());
     tag->putString("xuid", mXUID);
-    tag->putInt64("lastOnlineTime", mLastOnlineTime);
+    tag->putInt64("lastUpdateTime", mLastUpdateTime);
     tag->putBoolean("autoLogin", mAutoLogin);
     return std::move(tag);
 }
@@ -213,7 +213,7 @@ bool FakePlayer::login()
     }
     mUniqueID = player->getUniqueID();
     mClientSubID = player->getClientSubId();
-    time(&mLastOnlineTime);
+    time(&mLastUpdateTime);
 
     mLoggingIn = false;
     mLoggingInPlayer = nullptr;
@@ -230,7 +230,7 @@ bool FakePlayer::logout(bool save)
         return false;
     if (save)
     {
-        time(&mLastOnlineTime);
+        time(&mLastUpdateTime);
         FakePlayerManager::getManager().saveData(*this);
     }
     getPlayer()->simulateDisconnect();
@@ -318,7 +318,7 @@ bool FakePlayerManager::saveData(mce::UUID uuid)
 bool FakePlayerManager::saveData(FakePlayer const& fakePlayer)
 {
     if (fakePlayer.isOnline())
-        time(&fakePlayer.mLastOnlineTime);
+        time(&fakePlayer.mLastUpdateTime);
     return mStorage->savePlayer(fakePlayer);
 }
 bool FakePlayerManager::saveData(SimulatedPlayer const& simulatedPlayer)
@@ -363,7 +363,7 @@ void FakePlayerManager::initFakePlayers()
     for (auto& [uuid, fakePlayer] : mMap)
     {
         mMapByName.emplace(fakePlayer->getRealName(), fakePlayer);
-        tmp.push_back({fakePlayer->mLastOnlineTime, fakePlayer->mRealName});
+        tmp.push_back({fakePlayer->mLastUpdateTime, fakePlayer->mRealName});
     }
     std::sort(tmp.begin(), tmp.end(), [](std::tuple<time_t, std::string_view> const& left, std::tuple<time_t, std::string_view> const& right) {
         return std::get<0>(left) > std::get<0>(right);
@@ -382,7 +382,8 @@ void FakePlayerManager::initEventListeners()
         if (fakePlayer)
             manager.onLogin(*fakePlayer);
         return true;
-        });
+    });
+#if false
     Event::PlayerLeftEvent::subscribe_ref([](Event::PlayerLeftEvent& ev) {
         auto& player = ev.mPlayer;
         auto& manager = FakePlayerManager::getManager();
@@ -391,6 +392,17 @@ void FakePlayerManager::initEventListeners()
             manager.onLogout(*fakePlayer);
         return true;
         });
+#else
+}
+THook(void, "?simulateDisconnect@SimulatedPlayer@@QEAAXXZ",
+      SimulatedPlayer* sp)
+{
+    auto& manager = FakePlayerManager::getManager();
+    auto fakePlayer = manager.tryGetFakePlayer(*sp);
+    if (fakePlayer)
+        manager.onLogout(*fakePlayer);
+    return original(sp);
+#endif
 }
 
 FakePlayerManager& FakePlayerManager::getManager()
@@ -709,4 +721,3 @@ TInstanceHook(void, "?savePlayers@Level@@UEAAXXZ", Level)
         logger.error("Error in FakePlayer::savePlayers");
     }
 }
-
