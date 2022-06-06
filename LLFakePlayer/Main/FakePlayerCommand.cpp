@@ -184,7 +184,8 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
 
 void updateLLFakePlayerSoftEnum()
 {
-    Global<CommandRegistry>->setSoftEnumValues(FAKEPLAYER_LIST_SOFT_ENUM_NAME, FakePlayerManager::getManager().getSortedNames());
+    if (Global<CommandRegistry>)
+        Global<CommandRegistry>->setSoftEnumValues(FAKEPLAYER_LIST_SOFT_ENUM_NAME, FakePlayerManager::getManager().getSortedNames());
 }
 
 #ifdef PLUGIN_IS_BETA
