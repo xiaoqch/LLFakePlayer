@@ -99,7 +99,7 @@ public:
     FPAPI static std::shared_ptr<FakePlayer> deserialize(CompoundTag const& tag, FakePlayerManager* manager = nullptr);
     FPAPI std::unique_ptr<CompoundTag> serialize() const;
 
-    FPAPI bool login();
+    FPAPI bool login(BlockPos* bpos = nullptr, class AutomaticID<class Dimension, int> dimId = 0);
     FPAPI bool logout(bool save = true);
     FPAPI mce::UUID const& getUuid() const;
     FPAPI std::string getUUIDString() const;

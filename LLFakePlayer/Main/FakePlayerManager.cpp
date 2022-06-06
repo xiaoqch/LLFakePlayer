@@ -194,7 +194,7 @@ struct LoginHolder
     }
 };
 
-bool FakePlayer::login()
+bool FakePlayer::login(BlockPos* bpos, class AutomaticID<class Dimension, int> dimId)
 {
     if (mLoggingIn || isOnline())
         return false;
@@ -204,7 +204,7 @@ bool FakePlayer::login()
         return false;
     }
     LoginHolder holder(this);
-    auto player = SimulatedPlayerHelper::create(mRealName);
+    auto player = SimulatedPlayerHelper::create(mRealName, bpos,dimId);
     if (!player)
     {
         mLoggingIn = false;

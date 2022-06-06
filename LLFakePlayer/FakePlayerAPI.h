@@ -57,7 +57,7 @@ FPAPI SimulatedPlayer* login(std::string const& name);
 FPAPI bool logout(std::string const& name);
 FPAPI bool create(std::string const& name);
 FPAPI bool createWithData(std::string const& name, CompoundTag* data);
-FPAPI bool createAt(std::string const& name, BlockPos pos, int dimid);
+FPAPI SimulatedPlayer* createAt(std::string const& name, BlockPos pos, int dimid);
 FPAPI bool remove(std::string const& name);
 FPAPI std::vector<std::string> loginAll();
 FPAPI std::vector<std::string> logoutAll();

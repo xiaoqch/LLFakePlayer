@@ -80,14 +80,14 @@ inline void addUser(Level& level, class OwnerPtrT<struct EntityRefTraits> a0)
 namespace SimulatedPlayerHelper
 {
 // Rewrite SimulatedPlayer::create(std::string const & name,class BlockPos const & bpos,class AutomaticID<class Dimension,int> dimId,class ServerNetworkHandler & handler)
-inline SimulatedPlayer* create(std::string const& name)
+inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr, class AutomaticID<class Dimension, int> dimId = 0)
 {
     if (Global<ServerNetworkHandler> == nullptr)
         return nullptr;
     std::string xuid = "";
-    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, 0
+    OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, dimId
 #if BDS_VER > 11910
-                                                                                              xuid
+                                                                                              , xuid
 #endif
     );
     auto player = ownerPtr.tryGetSimulatedPlayer();
@@ -98,11 +98,14 @@ inline SimulatedPlayer* create(std::string const& name)
         player->postLoad(/* isNewPlayer */ false);
         Level& level = player->getLevel();
         addUser(level, std::move(ownerPtr));
-        // auto pos = bpos.bottomCenter();
-        // pos.y = pos.y + 1.62001;
-        // player->setPos(pos);
-        // player->setRespawnReady(pos);
-        // player->setSpawnBlockRespawnPosition(bpos, dimId);
+        if (bpos)
+        {
+            auto pos = bpos->bottomCenter();
+            pos.y = pos.y + 1.62001;
+            player->setPos(pos);
+            player->setRespawnReady(pos);
+            player->setSpawnBlockRespawnPosition(*bpos, dimId);
+        }
         player->setLocalPlayerAsInitialized();
     }
     return player;

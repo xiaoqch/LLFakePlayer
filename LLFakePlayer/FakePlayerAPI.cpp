@@ -127,10 +127,15 @@ bool createWithData(std::string const& name, CompoundTag* data)
     DEBUGL(__FUNCTION__);
     return FakePlayerManager::getManager().create(name, data->clone());
 }
-bool createAt(std::string const& name, BlockPos pos, int dimid)
+SimulatedPlayer* createAt(std::string const& name, BlockPos pos, int dimid)
 {
     DEBUGL(__FUNCTION__);
-    return FakePlayerManager::getManager().create(name);
+    auto fp = FakePlayerManager::getManager().create(name);
+    if (fp && fp->login(&pos, dimid))
+    {
+        return fp->getPlayer();
+    }
+    return nullptr;
 }
 bool remove(std::string const& name)
 {
