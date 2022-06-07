@@ -66,29 +66,29 @@ private:
 };
 namespace mce
 {
-//class Blob
+// class Blob
 //{
-//public:
-//    void (*deleter)(unsigned char*) = &defaultDeleter;
-//    unsigned char* data = nullptr;
-//    size_t size = 0;
+// public:
+//     void (*deleter)(unsigned char*) = &defaultDeleter;
+//     unsigned char* data = nullptr;
+//     size_t size = 0;
 //
-//    MCAPI Blob(class mce::Blob&&);
-//    MCAPI Blob();
-//    MCAPI Blob(unsigned __int64);
-//    MCAPI ~Blob();
-//    MCAPI class Blob& operator=(class mce::Blob&&);
-//    MCAPI unsigned char const* cend(void) const;
-//    //MCAPI unsigned char const* cbegin(void) const;
-//    MCAPI static void defaultDeleter(unsigned char*);
-//    constexpr unsigned char* begin(void) const {
-//        return data;
-//    };
-//    constexpr unsigned char* end(void) const
-//    {
-//        return data + size;
-//    }
-//};
+//     MCAPI Blob(class mce::Blob&&);
+//     MCAPI Blob();
+//     MCAPI Blob(unsigned __int64);
+//     MCAPI ~Blob();
+//     MCAPI class Blob& operator=(class mce::Blob&&);
+//     MCAPI unsigned char const* cend(void) const;
+//     //MCAPI unsigned char const* cbegin(void) const;
+//     MCAPI static void defaultDeleter(unsigned char*);
+//     constexpr unsigned char* begin(void) const {
+//         return data;
+//     };
+//     constexpr unsigned char* end(void) const
+//     {
+//         return data + size;
+//     }
+// };
 namespace BlobHelper
 {
 MCAPI class mce::Blob clone(class mce::Blob const&);
@@ -103,40 +103,41 @@ inline std::vector<unsigned char> getVectorFromBlob(class mce::Blob const& blob)
 {
     std::vector<unsigned char> data{};
     data.reserve(blob.size());
-    for (auto& c : const_cast<Blob&>(blob)) {
+    for (auto& c : const_cast<Blob&>(blob))
+    {
         data.push_back(c);
     }
     return data;
 }
-}
+} // namespace BlobHelper
 
-//struct Image
+// struct Image
 //{
-//    ImageFormat mFormat;  // 0
-//    unsigned int mWidth;  // 4
-//    unsigned int mHeight; // 8
-//    ImageUsage mUsage;    // 12
-//    Blob mBlob;           // 16
+//     ImageFormat mFormat;  // 0
+//     unsigned int mWidth;  // 4
+//     unsigned int mHeight; // 8
+//     ImageUsage mUsage;    // 12
+//     Blob mBlob;           // 16
 //
-//    inline bool savePngTo(std::string const& filePath) const
-//    {
-//        auto buffer = mce::BlobHelper::getVectorFromBlob(mBlob);
-//        auto err = lodepng::encode(filePath, buffer, mWidth, mHeight);
-//        return err == 0;
-//    }
+//     inline bool savePngTo(std::string const& filePath) const
+//     {
+//         auto buffer = mce::BlobHelper::getVectorFromBlob(mBlob);
+//         auto err = lodepng::encode(filePath, buffer, mWidth, mHeight);
+//         return err == 0;
+//     }
 //
-//    inline static Image readPngFrom(std::string const& filePath)
-//    {
-//        return Image(0,0,(mce::ImageFormat)0,(mce::ImageUsage)0);
-//    }
+//     inline static Image readPngFrom(std::string const& filePath)
+//     {
+//         return Image(0,0,(mce::ImageFormat)0,(mce::ImageUsage)0);
+//     }
 //
-//    MCAPI ~Image();
-//    MCAPI Image(unsigned int, unsigned int, enum mce::ImageFormat, enum mce::ImageUsage);
-//    MCAPI struct mce::Image clone(void) const;
-//    MCAPI bool isEmpty(void) const;
-//    MCAPI void resizeImageBytesToFitImageDescription(void);
+//     MCAPI ~Image();
+//     MCAPI Image(unsigned int, unsigned int, enum mce::ImageFormat, enum mce::ImageUsage);
+//     MCAPI struct mce::Image clone(void) const;
+//     MCAPI bool isEmpty(void) const;
+//     MCAPI void resizeImageBytesToFitImageDescription(void);
 //
-//};
+// };
 } // namespace mce
 class TintMapColor
 {
@@ -145,8 +146,8 @@ class TintMapColor
 class AnimatedImageData
 {
 public:
-    enum /*persona::*/AnimatedTextureType type;
-    enum /*persona::*/AnimationExpression expression;
+    enum /*persona::*/ AnimatedTextureType type;
+    enum /*persona::*/ AnimationExpression expression;
     mce::Image image;
     float unk48;
 
@@ -203,18 +204,20 @@ enum PieceType : unsigned int
 inline void genPieceTypeEnum()
 {
     logger.warn("True");
-    for (unsigned int type = 0; type <= 0x1Cu; ++type) {
+    for (unsigned int type = 0; type <= 0x1Cu; ++type)
+    {
         auto str = persona::stringFromPieceType((persona::PieceType)type, true);
         logger.info("{} = 0x{:X},", str, type);
     }
     logger.warn("False");
-    for (unsigned int type = 0; type <= 0x1Cu; ++type) {
+    for (unsigned int type = 0; type <= 0x1Cu; ++type)
+    {
         auto str = persona::stringFromPieceType((persona::PieceType)type, false);
         logger.info("{} = 0x{:X},", Util::toCamelCase(str, '_'), type);
     }
     __debugbreak();
 }
-//inline bool f = ([]() { genPieceTypeEnum(); return true; })();
+// inline bool f = ([]() { genPieceTypeEnum(); return true; })();
 #endif // DEBUG
 class SerializedSkin
 {
@@ -253,7 +256,7 @@ public:
 
         mSkinImage.savePngTo(std::filesystem::path(skinPath).append("skin.png").u8string());
         mCapeImage.savePngTo(std::filesystem::path(skinPath).append("cape.png").u8string());
-        for (size_t index = 0; index < mSkinAnimatedImages.size();++index)
+        for (size_t index = 0; index < mSkinAnimatedImages.size(); ++index)
         {
             std::string filename = fmt::format("animate-{}.png", index);
             mSkinAnimatedImages[index].image.savePngTo(std::filesystem::path(skinPath).append(filename).u8string());
@@ -275,7 +278,6 @@ public:
     MCAPI void updateGeometryName();
     MCAPI void write(class BinaryStream&) const;
     MCAPI ~SerializedSkin();
-
 };
 static_assert(sizeof(SerializedSkin) == 616);
 #include <MC/Packet.hpp>
@@ -305,7 +307,6 @@ public:
     /*6*/ virtual enum StreamReadResult _read(class ReadOnlyBinaryStream&);
 
     MCAPI PlayerSkinPacket();
-
 };
 
 
@@ -326,7 +327,6 @@ public:
     MCAPI bool read(class ReadOnlyBinaryStream&);
     MCAPI void write(class BinaryStream&) const;
     MCAPI ~PlayerListEntry();
-
 };
 
 enum class PlayerListPacketType
@@ -354,12 +354,11 @@ public:
     MCAPI PlayerListPacket(class mce::UUID const&);
     MCAPI PlayerListPacket();
     MCAPI void emplace(class PlayerListEntry&&);
-
 };
 
 namespace SkinHelper
 {
 bool init();
 bool updatePlayerSkin(Player& player, SerializedSkin const& skin);
-};
+}; // namespace SkinHelper
 #endif

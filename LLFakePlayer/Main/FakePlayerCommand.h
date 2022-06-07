@@ -1,7 +1,7 @@
 #pragma once
 class SimulatedPlayer;
 
-void updateLLFakePlayerSoftEnum();
+void UpdateLLFakePlayerSoftEnum();
 class FakePlayerCommand : public Command
 {
     static std::vector<std::string> mList;
@@ -14,8 +14,7 @@ class FakePlayerCommand : public Command
         Remove,
         Login,
         Logout,
-        Swap,
-        GUI,
+        As,
         Import,
     } operation;
     CommandPosition commandPos;

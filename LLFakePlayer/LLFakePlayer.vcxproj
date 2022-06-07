@@ -205,7 +205,6 @@ LibraryBuilder.exe -o ..\Lib\
     <ClInclude Include="SkinHelper.h" />
     <ClInclude Include="Utils\ColorHelper.h" />
     <ClInclude Include="Utils\DebugHelper.h" />
-    <ClInclude Include="Utils\DlsymStatic.h" />
     <ClInclude Include="Utils\MyPackets.h" />
     <ClInclude Include="Version.h" />
   </ItemGroup>

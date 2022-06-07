@@ -91,9 +91,6 @@
     <ClInclude Include="Resource\resource.h">
       <Filter>资源文件</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\DlsymStatic.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\ColorHelper.h">
       <Filter>Utils</Filter>
     </ClInclude>

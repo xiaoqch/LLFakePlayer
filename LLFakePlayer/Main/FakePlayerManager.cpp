@@ -14,6 +14,7 @@
 #include <LoggerAPI.h>
 #include "Utils/MyPackets.h"
 #include <EventAPI.h>
+#include <ScheduleAPI.h>
 
 #ifdef VERBOSE
 #include <MC/PrettySnbtFormat.hpp>
@@ -31,51 +32,7 @@ void debugLogNbt(CompoundTag const& tag)
     PrettySnbtFormat format = PrettySnbtFormat::getDefaultFormat(false);
     // format.setValueColor<Tag::Type::Short>(ColorFormat::colorCodeToColorMap.at("§7"));
     ((PrettySnbtFormatConsole&)format).setMaxLevel(2);
-    logger.info("Snbt: \n{}", tag.toPrettySNBT(format));
-}
-
-void logPlayerInfo(Player* player)
-{
-    DEBUGW("FakePlayer: {}", player->getNameTag());
-    DEBUGW("Dimension: {}, Position: ({})", (int)player->getDimensionId(), player->getPosition().toString());
-    auto tag = player->getNbt();
-    for (auto& [k, v] : *tag)
-    {
-        auto tag = const_cast<CompoundTagVariant&>(v).asTag();
-        std::string value;
-        switch (tag->getTagType())
-        {
-            case Tag::Byte:
-                value = std::to_string((int)tag->asByteTag()->value());
-                break;
-            case Tag::End:
-            case Tag::Short:
-            case Tag::Int:
-            case Tag::Int64:
-            case Tag::Float:
-            case Tag::Double:
-            case Tag::ByteArray:
-            case Tag::String:
-            case Tag::Compound:
-            case Tag::IntArray:
-                value = tag->toString();
-                break;
-            case Tag::List:
-            {
-                value = "[";
-                auto listTag = tag->asListTag();
-                for (auto& tagi : *listTag)
-                {
-                    value += tagi->toString() + ", ";
-                }
-                value += "]";
-                break;
-            }
-            default:
-                break;
-        }
-        DEBUGL("{}: {}", k, value);
-    }
+    // logger.info("Snbt: \n{}", tag.toPrettySNBT(format));
 }
 #else
 #define debugLogNbt(...) (void)0
@@ -145,19 +102,19 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
 {
     try
     {
-        std::string name = *tag.getStringTag("realName");
-        std::string xuid = *tag.getStringTag("xuid");
-        std::string suuid = *tag.getStringTag("uuid");
+        std::string name = *tag.getStringTag("RealName");
+        std::string xuid = *tag.getStringTag("XUID");
+        std::string suuid = *tag.getStringTag("UUID");
         auto uuid = mce::UUID::fromString(suuid);
-        time_t lastUpdateTime = *tag.getInt64Tag("lastUpdateTime");
-        bool autoLogin = *tag.getByteTag("autoLogin");
+        time_t lastUpdateTime = *tag.getInt64Tag("LastUpdateTime");
+        bool autoLogin = *tag.getByteTag("AutoLogin");
 #ifdef DEBUG
         ASSERT(xuid == std::to_string(do_hash(name.c_str())));
         ASSERT(uuid == mce::UUID::seedFromString(name));
 #endif // DEBUG
         if (name.empty() || !uuid)
         {
-            logger.info("FakePlayer Data Error, name: {}, uuid: {}", name, suuid);
+            logger.error("FakePlayer Data Error, name: {}, uuid: {}", name, suuid);
             return {};
         }
         return std::make_shared<FakePlayer>(name, xuid, uuid, lastUpdateTime, autoLogin, manager);
@@ -172,11 +129,11 @@ std::shared_ptr<FakePlayer> FakePlayer::deserialize(CompoundTag const& tag, Fake
 std::unique_ptr<CompoundTag> FakePlayer::serialize() const
 {
     auto tag = CompoundTag::create();
-    tag->putString("realName", mRealName);
-    tag->putString("uuid", mUUID.asString());
-    tag->putString("xuid", mXUID);
-    tag->putInt64("lastUpdateTime", mLastUpdateTime);
-    tag->putBoolean("autoLogin", mAutoLogin);
+    tag->putString("RealName", mRealName);
+    tag->putString("UUID", mUUID.asString());
+    tag->putString("XUID", mXUID);
+    tag->putInt64("LastUpdateTime", mLastUpdateTime);
+    tag->putBoolean("AutoLogin", mAutoLogin);
     return std::move(tag);
 }
 
@@ -204,7 +161,7 @@ bool FakePlayer::login(BlockPos* bpos, class AutomaticID<class Dimension, int> d
         return false;
     }
     LoginHolder holder(this);
-    auto player = SimulatedPlayerHelper::create(mRealName, bpos,dimId);
+    auto player = SimulatedPlayerHelper::create(mRealName, bpos, dimId);
     if (!player)
     {
         mLoggingIn = false;
@@ -308,6 +265,15 @@ bool FakePlayerManager::savePlayers(bool onlineOnly)
     return res;
 }
 
+bool FakePlayerManager::saveData(FakePlayer const& fakePlayer)
+{
+    if (!fakePlayer.shouldSaveData())
+        return false;
+    if (fakePlayer.isOnline())
+        time(&fakePlayer.mLastUpdateTime);
+    return mStorage->savePlayer(fakePlayer);
+}
+
 bool FakePlayerManager::saveData(mce::UUID uuid)
 {
     auto playerIter = mMap.find(uuid);
@@ -315,12 +281,7 @@ bool FakePlayerManager::saveData(mce::UUID uuid)
         return saveData(*playerIter->second);
     return false;
 }
-bool FakePlayerManager::saveData(FakePlayer const& fakePlayer)
-{
-    if (fakePlayer.isOnline())
-        time(&fakePlayer.mLastUpdateTime);
-    return mStorage->savePlayer(fakePlayer);
-}
+
 bool FakePlayerManager::saveData(SimulatedPlayer const& simulatedPlayer)
 {
     auto fakePlayer = tryGetFakePlayer(simulatedPlayer);
@@ -329,7 +290,7 @@ bool FakePlayerManager::saveData(SimulatedPlayer const& simulatedPlayer)
     return false;
 }
 
-bool FakePlayerManager::importData_DDF(std::string const& name)
+bool FakePlayerManager::importClientFakePlayerData(std::string const& name)
 {
     auto uuid = JAVA::nameUUIDFromBytes(name);
     auto suuid = uuid.asString();
@@ -350,7 +311,7 @@ bool FakePlayerManager::importData_DDF(std::string const& name)
     auto fp = create(name, std::move(playerData));
     if (fp)
         return true;
-    logger.error("Error in reading player's data");
+    logger.error("Error in creating FakePlayer");
     return false;
 }
 
@@ -375,6 +336,13 @@ void FakePlayerManager::initFakePlayers()
 }
 void FakePlayerManager::initEventListeners()
 {
+    Schedule::nextTick([]() {
+        auto& manager = getManager();
+        for (auto& fp : manager.getFakePlayerList()) {
+            if (fp->isAutoLogin())
+                fp->login();
+        }
+    });
     Event::PlayerJoinEvent::subscribe_ref([](Event::PlayerJoinEvent& ev) {
         auto& player = ev.mPlayer;
         auto& manager = FakePlayerManager::getManager();
@@ -407,11 +375,11 @@ THook(void, "?simulateDisconnect@SimulatedPlayer@@QEAAXXZ",
 
 FakePlayerManager& FakePlayerManager::getManager()
 {
-    static FakePlayerManager manager(PLUGIN_DATA_PATH);
+    static FakePlayerManager manager(Config::DataBasePath);
     return manager;
 }
 
-extern void updateLLFakePlayerSoftEnum();
+extern void UpdateLLFakePlayerSoftEnum();
 
 FakePlayer* FakePlayerManager::create(std::string const& name, std::unique_ptr<CompoundTag> playerData)
 {
@@ -426,10 +394,10 @@ FakePlayer* FakePlayerManager::create(std::string const& name, std::unique_ptr<C
     saveData(*player);
     if (playerData)
         mStorage->savePlayerTag(*player, *playerData);
-    //player->login();
+    // player->login();
     auto ptr = player.get();
     if (ptr)
-        updateLLFakePlayerSoftEnum();
+        UpdateLLFakePlayerSoftEnum();
     onAdd(*player);
     return ptr;
 }
@@ -447,7 +415,7 @@ bool FakePlayerManager::remove(std::string const& name)
         mMapByName.erase(name);
         mSortedNames.erase(std::find(mSortedNames.begin(), mSortedNames.end(), name));
         mStorage->removePlayerData(*fakePlayer);
-        updateLLFakePlayerSoftEnum();
+        UpdateLLFakePlayerSoftEnum();
         onRemove(*fakePlayer);
         return true;
     }
@@ -466,143 +434,30 @@ bool FakePlayerManager::logout(FakePlayer& fakePlayer) const
 {
     return fakePlayer.logout(true);
 }
-inline std::string compareTag(CompoundTag& left, CompoundTag& right)
-{
-    debugLogNbt(left);
-    debugLogNbt(right);
-    std::unordered_set<std::string> keys;
-    std::ostringstream oss;
-    for (auto& [key, val] : left) {
-        keys.insert(key);
-    }
-    for (auto& [key, val] : right)
-    {
-        keys.insert(key);
-    }
-    for (auto& key : keys)
-    {
-        auto leftTag = left.get(key);
-        auto rightTag = right.get(key);
-        if (!leftTag || !rightTag || !leftTag->equals(*rightTag))
-        {
-            if (leftTag)
-            {
-                auto type = leftTag->getId();
-                DEBUGW("{}({})", magic_enum::enum_name(type), (int)type);
-                if (type == Tag::Compound)
-                {
-                    auto k = ColorHelper::gold(key);
-                    DEBUGL(ColorHelper::transformToConsole(k));
-                    debugLogNbt(*leftTag->asCompoundTag());
-                }
-            }
-            if (rightTag)
-            {
-                auto type = rightTag->getId();
-                DEBUGW("{}({})", magic_enum::enum_name(type), (int)type);
-                if (type == Tag::Compound)
-                {
-                    auto k = ColorHelper::gold(key);
-                    DEBUGL(ColorHelper::transformToConsole(k));
-                    debugLogNbt(*rightTag->asCompoundTag());
-                }
-            }
-            if (leftTag && rightTag && (leftTag->getId() == Tag::Compound) && (rightTag->getId() == Tag::Compound))
-            {
-                oss << ColorHelper::gold(key) << std::endl
-                    << compareTag(*leftTag->asCompoundTag(), *rightTag->asCompoundTag()) << std::endl;
-            }
-            else
-                oss << ColorHelper::green(key) << " - " << ColorHelper::green("Left") << ": " << (!leftTag ? "nullptr" : leftTag->toString()) << ", " << ColorHelper::green("Right") << ": " << (!rightTag ? "nullptr" : rightTag->toString()) << std::endl;
-        }
-    }
-    auto str = oss.str();
-    return ColorHelper::transformToConsole(str);
-}
 
-inline void syncKey(CompoundTag& left, CompoundTag& right)
-{
-    for (auto& [key, val] : left)
-    {
-        if (!right.get(key))
-        {
-            auto tag = left.get(key)->copy();
-            tag->deleteChildren();
-            right.put(key, std::move(tag));
-        }
-    }
-    for (auto& [key, val] : right)
-    {
-        if (!left.get(key))
-        {
-            auto tag = right.get(key)->copy();
-            tag->deleteChildren();
-            left.put(key, std::move(tag));
-        }
-    }
-}
-
-bool FakePlayerManager::swapData(FakePlayer& fakePlayer, Player& player) const
-{
-    auto plTag = CompoundTag::create();
-    player.save(*plTag);
-    auto fpTag = fakePlayer.getPlayerTag();
-    syncKey(*fpTag, *plTag);
-
-    auto vftbl = dlsym("??_7DefaultDataLoadHelper@@6B@");
-    // auto helper = &vftbl;
-    //player.remove();
-    player.load(*fpTag, *(DataLoadHelper*)&vftbl);
-    player.setUniqueID(fpTag->getInt64("UniqueID"));
-    DEBUGW("Player: before - after:\n{}", compareTag(*fpTag, *player.getNbt()));
-    // player.reload();
-    SetActorDataPacket pkt;
-    pkt.mRuntimeId = player.getRuntimeID();
-    pkt.mDataItems = player.getEntityData().packAll();
-    player.sendNetworkPacket(pkt);
-    player.sendInventory(true);
-
-    if (fakePlayer.isOnline())
-    {
-        //fakePlayer.mPlayer->remove();
-        auto sp = fakePlayer.getPlayer();
-        sp->load(*plTag, *(DataLoadHelper*)&vftbl);
-        sp->setUniqueID(plTag->getInt64("UniqueID"));
-        DEBUGW("FakePlayer: before - after:\n{}", compareTag(*plTag, *sp->getNbt()));
-        sp->reload();
-        sp->_sendDirtyActorData();
-        sp->sendInventory(true);
-    }
-    else
-    {
-        mStorage->savePlayerTag(fakePlayer, *plTag);
-    }
-    return true;
-}
-
-//bool FakePlayerManager::logout(std::string const& name) const
+// bool FakePlayerManager::logout(std::string const& name) const
 //{
-//    auto fakePlayer = tryGetFakePlayer(name);
-//    if (fakePlayer)
-//        return fakePlayer->logout(true);
-//    return false;
-//}
+//     auto fakePlayer = tryGetFakePlayer(name);
+//     if (fakePlayer)
+//         return fakePlayer->logout(true);
+//     return false;
+// }
 //
-//bool FakePlayerManager::logout(mce::UUID const& uuid) const
+// bool FakePlayerManager::logout(mce::UUID const& uuid) const
 //{
-//    auto fakePlayer = tryGetFakePlayer(uuid);
-//    if (fakePlayer)
-//        return fakePlayer->logout(true);
-//    return false;
-//}
+//     auto fakePlayer = tryGetFakePlayer(uuid);
+//     if (fakePlayer)
+//         return fakePlayer->logout(true);
+//     return false;
+// }
 //
-//bool FakePlayerManager::logout(SimulatedPlayer const& simulatedPlayer) const
+// bool FakePlayerManager::logout(SimulatedPlayer const& simulatedPlayer) const
 //{
-//    auto fakePlayer = tryGetFakePlayer(simulatedPlayer);
-//    if (fakePlayer)
-//        return fakePlayer->logout(true);
-//    return false;
-//}
+//     auto fakePlayer = tryGetFakePlayer(simulatedPlayer);
+//     if (fakePlayer)
+//         return fakePlayer->logout(true);
+//     return false;
+// }
 
 #pragma endregion
 
@@ -648,20 +503,20 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
     // fix client sub id for identify packet
 #ifdef DEBUG
     auto ptr = (*(void***)&onPlayerLoadedCallback)[2];
-    auto rva = (uintptr_t)ptr - (uintptr_t)GetModuleHandleW(nullptr);
-    auto syms = dlsym_reverse((int)ptr);
+    auto syms = reinterpret_cast<std::vector<std::string>(*)(void*)>(&dlsym_reverse)(ptr);
     for (auto& sym : syms)
         logger.warn(sym);
-    onPlayerLoadedCallback = [=](ServerPlayer & sp)
-    {
+    onPlayerLoadedCallback = [=](ServerPlayer& sp) {
         onPlayerLoadedCallback(sp);
     };
 #endif // DEBUG
 
     auto rtn = original(this, level, sender, handler, blobCache, gameType, nid, subId, onPlayerLoadedCallback, uuid, clientId, std::move(cert), unk_int, unk_bool, entity);
-    // fix runtime id
+
+#ifdef DEBUG
     auto ueif = rtn->getUserEntityIdentifierComponent();
     ASSERT(dAccess<unsigned char>(ueif, 160) == subId);
+#endif // DEBUG
 
     DEBUGW("Simulated Player: {}, client sub id: {}, runtime id: {}", rtn->getNameTag(), (int)rtn->getClientSubId(), rtn->getRuntimeID().id);
     return rtn;
@@ -686,18 +541,18 @@ THook(std::unique_ptr<CompoundTag>&, "?loadServerPlayerData@LevelStorage@@QEAA?A
         // ASSERT(!rtn);
         if (rtn)
         {
-            logger.debug("Nbt for SimulatedPlayer is not empty");
+            logger.debug("Nbt for SimulatedPlayer <{}> is not empty", player.getNameTag());
 #ifdef DEBUG
             debugLogNbt(*rtn);
 #endif // DEBUG
         }
         if (FakePlayer::mLoggingIn && FakePlayer::mLoggingInPlayer)
         {
-            DEBUGW("Replace SimulatedPlayer data");
+            DEBUGW("Replacing SimulatedPlayer data");
             auto& fp = FakePlayer::mLoggingInPlayer;
             DEBUGW("Uuids: {}, {}", player.getUuid(), fp->getUuid().asString());
             ASSERT(player.getUuid() == fp->getUuid().asString());
-            auto playerTag = FakePlayer::mLoggingInPlayer->getStoragePlayerTag();
+            auto playerTag = fp->getStoragePlayerTag();
 #ifdef DEBUG
             if (playerTag)
                 debugLogNbt(*playerTag);

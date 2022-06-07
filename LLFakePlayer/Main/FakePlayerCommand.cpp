@@ -24,6 +24,7 @@
 
 using namespace RegisterCommandHelper;
 std::vector<std::string> FakePlayerCommand::mList;
+#include <MC/ConnectionRequest.hpp>
 
 void FakePlayerCommand::execute(CommandOrigin const& origin, CommandOutput& output) const
 {
@@ -93,21 +94,40 @@ void FakePlayerCommand::execute(CommandOrigin const& origin, CommandOutput& outp
             else
                 output.error("Logout Failed");
             break;
-        case FakePlayerCommand::Operation::Swap:
+        case FakePlayerCommand::Operation::As:
         {
             auto fp = manager.tryGetFakePlayer(name);
+            auto pl = origin.getPlayer();
+
+            auto& map = Global<ServerNetworkHandler>->fetchConnectionRequest(*pl->getNetworkIdentifier()).rawToken.get()->dataInfo.value_.map_;
+            for (auto iter = map->begin(); iter != map->end(); ++iter)
+            {
+                string s(iter->first.c_str());
+                if (s.find("ServerAddress") != s.npos)
+                {
+                    auto ServerAddress = iter->second.value_.string_;
+                }
+            }
+            auto addr = pl->getServerAddress();
+            size_t sep = addr.find_last_of(':');
+            auto ip = addr.substr(0, sep);
+            auto port = std::stoi(addr.substr(sep+1));
+            pl->transferServer(ip, port);
+            
             if (!fp)
                 output.errorf("Fake Player {} not found", name);
-            else if (manager.swapData(*fp, *Command::getPlayerFromOrigin(origin)))
-                output.successf("Fake Player {} swap data success", name);
-            else
+            else if (!pl)
+                output.errorf("\"As\" command can only be used by player");
+            //else if (manager.swapData(*fp, *Command::getPlayerFromOrigin(origin)))
+            //    output.successf("Login As Query Success ");
+            //else
                 output.errorf("Unknown Error in Fake Player {} swap data", name);
             break;
         }
         case FakePlayerCommand::Operation::Import:
             if (name_isSet)
             {
-                manager.importData_DDF(name);
+                manager.importClientFakePlayerData(name);
             }
             else
             {
@@ -121,10 +141,8 @@ void FakePlayerCommand::execute(CommandOrigin const& origin, CommandOutput& outp
                 });
             }
             break;
-        case FakePlayerCommand::Operation::GUI:
-            output.error("NoImpl");
-            break;
         default:
+            output.error("NoImpl");
             break;
     }
 }
@@ -144,13 +162,12 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
                                     {"remove", Operation::Remove},
                                     {"login", Operation::Login},
                                     {"logout", Operation::Logout},
-                                    {"swap", Operation::Swap},
+                                    {"as", Operation::As},
                                 });
     registry.addEnum<Operation>("FpManageAction",
                                 {
                                     {"list", Operation::List},
                                     {"help", Operation::Help},
-                                    {"gui", Operation::GUI},
                                 });
     registry.addEnum<Operation>("FpImportAction",
                                 {
@@ -182,7 +199,7 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionImport, nameOptional);
 }
 
-void updateLLFakePlayerSoftEnum()
+void UpdateLLFakePlayerSoftEnum()
 {
     if (Global<CommandRegistry>)
         Global<CommandRegistry>->setSoftEnumValues(FAKEPLAYER_LIST_SOFT_ENUM_NAME, FakePlayerManager::getManager().getSortedNames());
@@ -211,8 +228,10 @@ std::pair<std::string, int> genTickingInfo(BlockSource const& region, BlockPos c
     static std::string unloadedLabel = ColorHelper::dark_gray("－");
     std::ostringstream loadInfo;
     std::set<__int64> playerChunkHashs;
-    for (auto player : Level::getAllPlayers()) {
-        if (player->getDimensionId() == region.getDimensionId()) {
+    for (auto player : Level::getAllPlayers())
+    {
+        if (player->getDimensionId() == region.getDimensionId())
+        {
             playerChunkHashs.insert(ChunkPos(player->getPos()).hash());
         }
     }
@@ -227,7 +246,7 @@ std::pair<std::string, int> genTickingInfo(BlockSource const& region, BlockPos c
             auto chunk = region.getChunk({cx, cz});
             if (cx == chunk_x && cz == chunk_z)
             {
-                label=  centerLabel;
+                label = centerLabel;
             }
             else
             {
@@ -253,7 +272,8 @@ std::pair<std::string, int> genTickingInfo(BlockSource const& region, BlockPos c
             }
             if (chunk)
                 ++chunksCount;
-            if (playerChunkHashs.find(chunkHash)!= playerChunkHashs.end()) {
+            if (playerChunkHashs.find(chunkHash) != playerChunkHashs.end())
+            {
                 ColorFormat::removeColorCode(label);
                 label = ColorHelper::red_bold(label);
             }
@@ -303,7 +323,8 @@ void TickingCommand::execute(class CommandOrigin const& origin, class CommandOut
     {
         auto bpos = commandPos.getBlockPos(origin, Vec3::ZERO);
         auto dim = origin.getDimension();
-        if (dimensionId_isSet) {
+        if (dimensionId_isSet)
+        {
             dim = Level::getDimension(dimensionId);
         }
         if (!dim)
@@ -346,7 +367,6 @@ void TickingCommand::setup(CommandRegistry& registry)
         makeMandatory(&TickingCommand::commandPos, "coord", &TickingCommand::commandPos_isSet),
         makeOptional(&TickingCommand::dimensionId, "dimid", &TickingCommand::dimensionId_isSet),
         makeOptional(&TickingCommand::range, "range", &TickingCommand::range_isSet));
-    
 }
 
 #endif // PLUGIN_IS_BETA

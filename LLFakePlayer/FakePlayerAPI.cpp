@@ -11,7 +11,6 @@
 #endif // FAKE_PALYER_API_DEBUG
 
 
-
 #define ExportRemoteCallApi(name) RemoteCall::exportAs<decltype(FakePlayerAPI::name)>(LLFAKEPLAYER_NAMESPACE, #name, FakePlayerAPI::name)
 #define ExportRemoteCallApiAs(name, func) RemoteCall::exportAs<func>(LLFAKEPLAYER_NAMESPACE, #name, (func)&FakePlayerAPI::name)
 
@@ -176,10 +175,11 @@ std::vector<std::string> removeAll()
     }
     return list;
 }
-bool importDDFFakePlayer(std::string const& name)
+
+bool importClientFakePlayer(std::string const& name)
 {
     DEBUGL(__FUNCTION__);
-    return FakePlayerManager::getManager().importData_DDF(name);
+    return FakePlayerManager::getManager().importClientFakePlayerData(name);
 }
 
 size_t subscribeEvent(std::function<void(Event&)> const& handler)
@@ -207,7 +207,10 @@ bool remoteCallSubscribe(std::string const& callbackNamespace, std::string const
     return true;
 }
 
-bool exportRemoteCallApis()
+
+} // namespace FakePlayerAPI
+
+bool ExportRemoteCallApis()
 {
     bool res = true;
     res = res && ExportRemoteCallApi(getVersion);
@@ -225,21 +228,21 @@ bool exportRemoteCallApis()
     res = res && ExportRemoteCallApi(loginAll);
     res = res && ExportRemoteCallApi(logoutAll);
     res = res && ExportRemoteCallApi(removeAll);
-    res = res && ExportRemoteCallApi(importDDFFakePlayer);
-    
-    FakePlayerManager::getManager().subscribeEvent([](Event& ev) {
+    res = res && ExportRemoteCallApi(importClientFakePlayer);
+
+    FakePlayerManager::getManager().subscribeEvent([](FakePlayerAPI::Event& ev) {
         DEBUGL(__FUNCTION__);
         bool needClean = false;
-        static std::unordered_map<Event::EventType, std::string> eventNameMap{
-            {Event::EventType::Add, "add"},
-            {Event::EventType::Remove, "remove"},
-            {Event::EventType::Login, "login"},
-            {Event::EventType::Logout, "logout"},
-            {Event::EventType::Change, "change"},
+        static std::unordered_map<FakePlayerAPI::Event::EventType, std::string> eventNameMap{
+            {FakePlayerAPI::Event::EventType::Add, "add"},
+            {FakePlayerAPI::Event::EventType::Remove, "remove"},
+            {FakePlayerAPI::Event::EventType::Login, "login"},
+            {FakePlayerAPI::Event::EventType::Logout, "logout"},
+            {FakePlayerAPI::Event::EventType::Change, "change"},
         };
 
         DEBUGL("Event: {}, player: {}", eventNameMap[ev.mEvent], ev.mPlayer.getRealName());
-        for (auto& [ns, name, func] : callbacks)
+        for (auto& [ns, name, func] : FakePlayerAPI::callbacks)
         {
             if (RemoteCall::hasFunc(ns, name))
                 func(eventNameMap[ev.mEvent], ev.mPlayer.getRealName());
@@ -248,13 +251,15 @@ bool exportRemoteCallApis()
         }
         if (needClean)
         {
-            callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [](auto& t) {
-                return !RemoteCall::hasFunc(std::get<0>(t), std::get<1>(t));
-            }), callbacks.end());
+            FakePlayerAPI::callbacks.erase(
+                std::remove_if(FakePlayerAPI::callbacks.begin(), FakePlayerAPI::callbacks.end(), [](auto& t) {
+                    return !RemoteCall::hasFunc(std::get<0>(t), std::get<1>(t));
+                }),
+                FakePlayerAPI::callbacks.end());
         }
     });
-    res = res && RemoteCall::exportAs(LLFAKEPLAYER_NAMESPACE, "subscribeEvent", remoteCallSubscribe);
-    
+    res = res && RemoteCall::exportAs(LLFAKEPLAYER_NAMESPACE, "subscribeEvent", FakePlayerAPI::remoteCallSubscribe);
+
 
 #ifdef DEBUG
     auto list = ImportFakePlayerAPI(list);
@@ -270,5 +275,3 @@ bool exportRemoteCallApis()
 
     return res;
 }
-
-} // namespace FakePlayerAPI

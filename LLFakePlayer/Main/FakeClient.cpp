@@ -139,11 +139,6 @@ struct fmt::formatter<BlockPos>
     }
 };
 
-bool operator!=(Vec3 const& left, Vec3 const& right)
-{
-    return left.x != right.x || left.y != right.y || left.z != right.z;
-}
-
 class FakeSimulatedPlayer
 {
 public:
@@ -173,11 +168,11 @@ public:
     inline void breakIfStateChanged()
     {
         return;
-#define ListenAndLog(val)               \
-    static auto _##val = val;          \
+#define ListenAndLog(val)                                                             \
+    static auto _##val = val;                                                         \
     if (_##val != val) logger.error("[ValueChange] {}: {} -> {}", #val, _##val, val); \
     _##val = val;
-#define ListenAndBreak(val)               \
+#define ListenAndBreak(val)            \
     static auto _##val = val;          \
     if (_##val != val) __debugbreak(); \
     _##val = val;
@@ -200,7 +195,6 @@ public:
         ListenAndBreak(movementSettings);
         ListenAndLog(mOldY);
         ListenAndLog(inputSpeed);
-
     }
 
     inline static FakeSimulatedPlayer* from(Player* player)
@@ -223,15 +217,15 @@ static_assert(offsetof(FakeSimulatedPlayer, unk9288) == 9288);
 
 namespace PlayerOffset
 {
-constexpr size_t mIsInitialSpawnDone = 3921;         // ServerPlayer::isPlayerInitialized
-constexpr size_t mLoading = 8952;                    // ServerPlayer::isPlayerInitialized
-constexpr size_t mLocalPlayerInitialized = 8954;     // ServerPlayer::isPlayerInitialized
-constexpr size_t mSimulatedOldY = 9424;              // SimulatedPlayer::aiStep
+constexpr size_t mIsInitialSpawnDone = 3921;             // ServerPlayer::isPlayerInitialized
+constexpr size_t mLoading = 8952;                        // ServerPlayer::isPlayerInitialized
+constexpr size_t mLocalPlayerInitialized = 8954;         // ServerPlayer::isPlayerInitialized
+constexpr size_t mSimulatedOldY = 9424;                  // SimulatedPlayer::aiStep
 constexpr size_t mBlockRespawnUntilClientMessage = 3716; // ServerPlayer::_updateChunkPublisherView
-constexpr size_t mNetworkChunkPublisher = 8488;      // ServerPlayer::_updateChunkPublisherView
-constexpr size_t mServerHasMovementAuthority = 8488; // ??
-constexpr size_t mGameMode = 4680;                   // ??
-}
+constexpr size_t mNetworkChunkPublisher = 8488;          // ServerPlayer::_updateChunkPublisherView
+constexpr size_t mServerHasMovementAuthority = 8488;     // ??
+constexpr size_t mGameMode = 4680;                       // ??
+} // namespace PlayerOffset
 namespace
 {
 inline bool isFakePlayer(Actor const& actor)
@@ -520,7 +514,7 @@ void handlePacket(SimulatedPlayer* sp, Packet* packet)
         case MinecraftPacketIds::Text:
         {
             class TextPacket& pkt = *(TextPacket*)packet;
-            //DEBUGW("({})::handle - {}", sp->getNameTag(), pkt.toDebugString());
+            // DEBUGW("({})::handle - {}", sp->getNameTag(), pkt.toDebugString());
             break;
         }
         case MinecraftPacketIds::PlayerList:
@@ -547,7 +541,7 @@ TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacke
         {
             auto sp = Global<ServerNetworkHandler>->getServerPlayer(networkID, clientSubID);
             if (isFakePlayer(*sp))
-                return FakeClient::handlePacket((SimulatedPlayer*)sp, const_cast<Packet*>(&packet));
+                FakeClient::handlePacket((SimulatedPlayer*)sp, const_cast<Packet*>(&packet));
 #ifdef DEBUG
             if (packet.getId() == MinecraftPacketIds::InventorySlot)
             {
@@ -567,7 +561,7 @@ TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacke
             return;
 #endif // DEBUG
         }
-        catch (const std::exception& )
+        catch (const std::exception&)
         {
             logger.error("Error in NetworkHandler::send");
             DEBUGBREAK();
@@ -602,18 +596,33 @@ TInstanceHook(void, "?sendToClients@LoopbackPacketSender@@UEAAXAEBV?$vector@UNet
             }
         }
     }
-    processed = true;
     original(this, clients, packet);
-    processed = false;
 }
 
+#if false
+#include <EventAPI.h>
+#include <ScheduleAPI.h>
+extern bool FakePlayerLogin;
+static NetworkIdentifier* playerNid = nullptr;
+auto ev = Event::PlayerJoinEvent::subscribe_ref([](Event::PlayerJoinEvent& ev) {
+    if (ev.mPlayer->isSimulatedPlayer())
+    {
+        Schedule::delay([]() { FakePlayerLogin = true; }, 2000);
+    }
+    else
+    {
+        playerNid = ev.mPlayer->getNetworkIdentifier();
+    }
+    return true;
+});
 
 TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@AEBVPacket@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z",
               NetworkHandler, NetworkIdentifier& nid, class Packet& pkt, std::string const& data)
 {
     // fix simulated player sub id
-    if (!processed && nid.getHash() == FakePlayer::mNetworkID.getHash())
+    if (nid.getHash() == FakePlayer::mNetworkID.getHash())
     {
+        return original(this, *playerNid, pkt, data);
         // ASSERT(false);
         try
         {
@@ -639,6 +648,7 @@ TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@
 
     original(this, nid, pkt, data);
 }
+#endif
 
 // ================= Fix SimulatedPlayer =================
 
@@ -653,7 +663,7 @@ TInstanceHook(void, "?tickWorld@Player@@UEAAXAEBUTick@@@Z",
     {
         // Force to call the implementation of ServerPlayer
         SymCall("?_updateChunkPublisherView@ServerPlayer@@MEAAXAEBVVec3@@M@Z",
-                      void, ServerPlayer*, Vec3 const&, float)((ServerPlayer*)this, getPosition(), 16.0f);
+                void, ServerPlayer*, Vec3 const&, float)((ServerPlayer*)this, getPosition(), 16.0f);
     }
 }
 
@@ -666,7 +676,7 @@ TInstanceHook(std::shared_ptr<class ChunkViewSource>&, "?_createChunkSource@Simu
     // dAccess<int>(csPtr.get(), 56) = 1;
     // return csPtr;
     return SymCall("?_createChunkSource@Player@@MEAA?AV?$shared_ptr@VChunkViewSource@@@std@@AEAVChunkSource@@@Z",
-                         std::shared_ptr<class ChunkViewSource>&, SimulatedPlayer const&, std::shared_ptr<class ChunkViewSource>&, class ChunkSource&)(*this, res, chunkSource);
+                   std::shared_ptr<class ChunkViewSource>&, SimulatedPlayer const&, std::shared_ptr<class ChunkViewSource>&, class ChunkSource&)(*this, res, chunkSource);
 }
 
 // this value only in SimulatedPlayer, and used in SimulatedPlayer::aiStep for check SimulatedPlayer fall distance
@@ -951,8 +961,8 @@ TInstanceHook(void, "?die@ServerPlayer@@UEAAXAEBVActorDamageSource@@@Z",
     if (isFakePlayer(*this))
     {
         LOG_VAR(this->isOnGround());
-        //LOG_VAR(dAccess<float>(this, 468));
-        //LOG_VAR((int)dAccess<char>(this, 4216));
+        // LOG_VAR(dAccess<float>(this, 468));
+        // LOG_VAR((int)dAccess<char>(this, 4216));
     }
     original(this, ads);
 }

@@ -274,8 +274,21 @@ void onPacketRead(std::string const& type)
         isHooking = false;                                                                        \
     }
 
+#define HookHandlePacket(packetType)                                                                                  \
+    TClasslessInstanceHook(void, "?handle@ServerNetworkHandler@@UEAAXAEBVNetworkIdentifier@@AEBV" #packetType "@@@Z", \
+                           class NetworkIdentifier const& nid, class EmoteListPacket const& pkt)                      \
+    {                                                                                                                 \
+        if (FakePlayerLogin)                                                                                          \
+            original(this, FakePlayer::mNetworkID, pkt);                                                              \
+        else                                                                                                          \
+            original(this, nid, pkt);                                                                                 \
+    }
 
-ForEachPacket(HookPacketWrite);
+
+//#include <FakePlayerManager.h>
+// bool FakePlayerLogin = false;
+//ForEachPacket(HookHandlePacket);
+ ForEachPacket(HookPacketWrite);
 ForEachPacket(HookPacketRead);
 #define LogPacketTimes(packet) logger.warn("{:4},{:4},{}", writeTimes<packet>, readTimes<packet>, #packet)
 
@@ -553,12 +566,12 @@ static_assert(check_packet_size_v<class ActorEventPacket, 0x40>, "size of ActorE
 static_assert(check_packet_size_v<class MobEffectPacket, 0x50>, "size of MobEffectPacket should be 80 or 48(default)");
 static_assert(check_packet_size_v<class UpdateAttributesPacket, 0x58>, "size of UpdateAttributesPacket should be 88 or 48(default)");
 static_assert(check_packet_size_v<class InventoryTransactionPacket, 0x60>, "size of InventoryTransactionPacket should be 96 or 48(default)");
-//static_assert(check_packet_size_v<class MobEquipmentPacket, 0xC8>, "size of MobEquipmentPacket should be 200 or 48(default)");
+// static_assert(check_packet_size_v<class MobEquipmentPacket, 0xC8>, "size of MobEquipmentPacket should be 200 or 48(default)");
 static_assert(check_packet_size_v<class MobArmorEquipmentPacket, 0x238>, "size of MobArmorEquipmentPacket should be 568 or 48(default)");
 static_assert(check_packet_size_v<class InteractPacket, 0x50>, "size of InteractPacket should be 80 or 48(default)");
 static_assert(check_packet_size_v<class BlockPickRequestPacket, 0x40>, "size of BlockPickRequestPacket should be 64 or 48(default)");
 static_assert(check_packet_size_v<class ActorPickRequestPacket, 0x40>, "size of ActorPickRequestPacket should be 64 or 48(default)");
-//static_assert(check_packet_size_v<class PlayerActionPacket, 0x50>, "size of PlayerActionPacket should be 80 or 48(default)");
+// static_assert(check_packet_size_v<class PlayerActionPacket, 0x50>, "size of PlayerActionPacket should be 80 or 48(default)");
 static_assert(check_packet_size_v<class HurtArmorPacket, 0x40>, "size of HurtArmorPacket should be 64 or 48(default)");
 static_assert(check_packet_size_v<class SetActorDataPacket, 0x58>, "size of SetActorDataPacket should be 88 or 48(default)");
 static_assert(check_packet_size_v<class SetActorMotionPacket, 0x48>, "size of SetActorMotionPacket should be 72 or 48(default)");
@@ -571,7 +584,7 @@ static_assert(check_packet_size_v<class ContainerOpenPacket, 0x48>, "size of Con
 static_assert(check_packet_size_v<class ContainerClosePacket, 0x38>, "size of ContainerClosePacket should be 56 or 48(default)");
 static_assert(check_packet_size_v<class PlayerHotbarPacket, 0x38>, "size of PlayerHotbarPacket should be 56 or 48(default)");
 static_assert(check_packet_size_v<class InventoryContentPacket, 0x50>, "size of InventoryContentPacket should be 80 or 48(default)");
-//static_assert(check_packet_size_v<class InventorySlotPacket, 0xB8>, "size of InventorySlotPacket should be 184 or 48(default)");
+// static_assert(check_packet_size_v<class InventorySlotPacket, 0xB8>, "size of InventorySlotPacket should be 184 or 48(default)");
 static_assert(check_packet_size_v<class ContainerSetDataPacket, 0x40>, "size of ContainerSetDataPacket should be 64 or 48(default)");
 static_assert(check_packet_size_v<class CraftingDataPacket, 0x98>, "size of CraftingDataPacket should be 152 or 48(default)");
 static_assert(check_packet_size_v<class CraftingEventPacket, 0x78>, "size of CraftingEventPacket should be 120 or 48(default)");

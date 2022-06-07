@@ -423,14 +423,14 @@ enum PlayerActionType
 class PlayerActionPacket : public Packet
 {
 public:
-    BlockPos mPosition;           // 48
-    #if BDS_VER > 11910
-    BlockPos mPosition2;          // 60
-    #endif
+    BlockPos mPosition; // 48
+#if BDS_VER > 11910
+    BlockPos mPosition2; // 60
+#endif
     FaceID mBlockFace;            // 72
     PlayerActionType mActionType; // 76
     ActorRuntimeID mRuntimeID;    // 80
-    
+
     inline std::string toDebugString() const
     {
         std::ostringstream oss;
@@ -672,7 +672,7 @@ public:
         oss << getPacketIdAndName(*this);
 
         oss << KeyAndVal(mType) << KeyAndVal(mSourceName) << KeyAndVal(mMessage)
-            << KeyAndVal(mParameters.size()) << KeyAndVal(mNeedsTranslation) 
+            << KeyAndVal(mParameters.size()) << KeyAndVal(mNeedsTranslation)
             << KeyAndVal(mXUID) << KeyAndVal(mPlatformChatID);
         return ColorFormat::convertToColsole(oss.str());
     }
@@ -693,7 +693,6 @@ public:
     MCAPI static class TextPacket createTranslated(std::string const&, std::vector<std::string> const&);
     MCAPI static class TextPacket createTranslatedAnnouncement(std::string const&, std::string const&, std::string const&, std::string const&);
     MCAPI static class TextPacket createWhisper(std::string const&, std::string const&, std::string const&, std::string const&);
-
 };
 static_assert(sizeof(TextPacket) == 168 + 48);
 

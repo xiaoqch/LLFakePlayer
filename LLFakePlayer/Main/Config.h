@@ -32,7 +32,6 @@ llfakeplayer list - List all fake player
 llfakeplayer login - Login a existing fake player
 llfakeplayer logout - Logout a existing fake player
 llfakeplayer import - Import data from ddf8196's FakePlayer Client
-llfakeplayer gui - Show fake player manage gui
 )"
 
 
@@ -40,8 +39,8 @@ llfakeplayer gui - Show fake player manage gui
 #define PLUGIN_DIR PLUGINS_DIR PLUGIN_NAME "/"
 #define PLUGIN_LOG_PATH LOG_DIR PLUGIN_NAME ".log"
 #define PLUGIN_CONFIG_PATH PLUGIN_DIR "config.json"
-#define PLUGIN_DATA_PATH PLUGIN_DIR "leveldb/"
-
+#define DEFAULT_DATABASE_PATH PLUGIN_DIR "leveldb/"
+//"FakePlayerDB/"
 // Switch
 #define ENABLE_LOG_FILE true
 #define ENABLE_CONFIG true
@@ -58,8 +57,8 @@ namespace Config
 inline std::string CommandAlias = "fp";
 inline unsigned int ChunkRadius = 9;
 inline bool DebugMode = false;
+inline std::string DataBasePath = DEFAULT_DATABASE_PATH;
 
 bool saveConfig();
 bool initConfig();
 } // namespace Config
-

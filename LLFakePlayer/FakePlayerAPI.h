@@ -23,10 +23,10 @@ struct FakePlayerState
     std::string xuid;
     mce::UUID uuid;
     std::string skinId = "";
-    bool online =false;
+    bool online = false;
     bool autoLogin = false;
     time_t lastUpdateTime;
-    
+
     FPAPI std::string toJson();
 };
 
@@ -62,8 +62,8 @@ FPAPI bool remove(std::string const& name);
 FPAPI std::vector<std::string> loginAll();
 FPAPI std::vector<std::string> logoutAll();
 FPAPI std::vector<std::string> removeAll();
-FPAPI bool importDDFFakePlayer(std::string const& name);
+FPAPI bool importClientFakePlayer(std::string const& name);
 FPAPI size_t subscribeEvent(std::function<void(Event&)> const& handler);
 FPAPI bool unsubscribeEvent(size_t id);
 
-};
+}; // namespace FakePlayerAPI

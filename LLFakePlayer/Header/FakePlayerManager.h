@@ -74,19 +74,19 @@ class FakePlayer
     std::string mXUID;
     mce::UUID mUUID;
     mutable time_t mLastUpdateTime;
-    bool mAutoLogin = false;
     FakePlayerManager* mManager;
+    bool mAutoLogin = false;
+    bool mSaveData = true;
 
     // Online Data
     ActorUniqueID mUniqueID;
-    //bool mOnline = false;
-    //SimulatedPlayer* mPlayer = nullptr;
     unsigned char mClientSubID = -1;
 
     friend class FakePlayerManager;
     friend class FakePlayerStorage;
 
 public:
+    static bool mWaitingAs;
     static bool mLoggingIn;
     static FakePlayer* mLoggingInPlayer;
     static NetworkIdentifier mNetworkID;
@@ -138,11 +138,14 @@ public:
     {
         return getSimulatedPlayerByUuid(mUUID);
     }
+    inline bool shouldSaveData() const
+    {
+        return mSaveData;
+    }
 
     FPAPI std::unique_ptr<CompoundTag> getPlayerTag() const;
     FPAPI std::unique_ptr<CompoundTag> getStoragePlayerTag() const;
     FPAPI std::unique_ptr<CompoundTag> getOnlinePlayerTag() const;
-    
 };
 class FakePlayerManager
 {
@@ -153,7 +156,7 @@ public:
     std::unordered_map<std::string, std::shared_ptr<FakePlayer>> mMapByName;
     std::vector<std::string> mSortedNames;
 
-    std::unordered_map<size_t,std::function<void(FakePlayerAPI::Event&)>> mEventHandlers;
+    std::unordered_map<size_t, std::function<void(FakePlayerAPI::Event&)>> mEventHandlers;
     inline size_t subscribeEvent(std::function<void(FakePlayerAPI::Event&)> const& handler)
     {
         static size_t id = 0;
@@ -173,27 +176,27 @@ public:
                 handler.second(ev);
         }
     }
-    inline void onAdd(FakePlayer&fp)
+    inline void onAdd(FakePlayer& fp)
     {
         callEvent(FakePlayerAPI::Event::EventType::Add, fp);
     }
-    inline void onRemove(FakePlayer&fp)
+    inline void onRemove(FakePlayer& fp)
     {
         callEvent(FakePlayerAPI::Event::EventType::Remove, fp);
     }
-    inline void onLogin(FakePlayer&fp)
+    inline void onLogin(FakePlayer& fp)
     {
         callEvent(FakePlayerAPI::Event::EventType::Login, fp);
     }
-    inline void onLogout(FakePlayer&fp)
+    inline void onLogout(FakePlayer& fp)
     {
         callEvent(FakePlayerAPI::Event::EventType::Logout, fp);
     }
-    inline void onChange(FakePlayer&fp)
+    inline void onChange(FakePlayer& fp)
     {
         callEvent(FakePlayerAPI::Event::EventType::Change, fp);
     }
-    
+
 
 private:
     FPAPI FakePlayerManager(std::string const& dbPath);
@@ -212,7 +215,7 @@ public:
     FPAPI bool saveData(mce::UUID uuid);
     FPAPI bool saveData(FakePlayer const& fakePlayer);
     FPAPI bool saveData(SimulatedPlayer const& simulatedPlayer);
-    FPAPI bool importData_DDF(std::string const& name);
+    FPAPI bool importClientFakePlayerData(std::string const& name);
     friend class FakePlayer;
     friend class SimulatedPlayer;
 
@@ -229,10 +232,10 @@ public:
             callback(name, *fakePlayer);
         }
     }
-    inline std::vector<FakePlayer const*> getFakePlayerList() const
+    inline std::vector<FakePlayer *> getFakePlayerList() const
     {
-        std::vector<FakePlayer const*> list;
-        forEachFakePlayer([&list](std::string_view name, FakePlayer const& fakePlayer) {
+        std::vector<FakePlayer *> list;
+        forEachFakePlayer([&list](std::string_view name, FakePlayer & fakePlayer) {
             list.push_back(&fakePlayer);
         });
         std::sort(list.begin(), list.end(), [](FakePlayer const* left, FakePlayer const* right) {
@@ -256,8 +259,6 @@ public:
             return logout(*fakePlayer);
         return false;
     }
-
-    bool swapData(FakePlayer& fakePlayer, Player& player) const;
 
     inline std::shared_ptr<FakePlayer> tryGetFakePlayer(Player const& player) const
     {
@@ -475,8 +476,8 @@ public:
         if (mStorage->get(serverId, data))
             return data;
 #ifdef DEBUG
-             mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-             DEBUGBREAK();
+        mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
+        DEBUGBREAK();
 #endif // DEBUG
         return "";
     };

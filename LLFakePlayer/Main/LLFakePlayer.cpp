@@ -5,15 +5,12 @@
 #include "../SkinHelper.h"
 #include <MC/NetworkIdentifier.hpp>
 
-namespace FakePlayerAPI
-{
-extern bool exportRemoteCallApis();
-}
+extern bool ExportRemoteCallApis();
 
 void entry()
 {
-    FakePlayerAPI::exportRemoteCallApis();
-    //SkinHelper::init();
+    ExportRemoteCallApis();
+    // SkinHelper::init();
     Event::RegCmdEvent::subscribe([](Event::RegCmdEvent ev) -> bool {
 #ifdef PLUGIN_IS_BETA
         TickingCommand::setup(*ev.mCommandRegistry);
@@ -44,7 +41,7 @@ void entry()
         RestoreVFunc(443);
 #undef RestoreVFunc
 #endif // MODIFY_SIMULATED_PLAYER_VTABLE
-        // FakePlayerManager::getManager();
+       // FakePlayerManager::getManager();
         return true;
     });
 #endif // PLUGIN_IS_BETA

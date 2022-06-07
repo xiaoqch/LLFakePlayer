@@ -87,7 +87,8 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
     std::string xuid = "";
     OwnerPtrT<EntityRefTraits> ownerPtr = Global<ServerNetworkHandler>->createSimulatedPlayer(name, dimId
 #if BDS_VER > 11910
-                                                                                              , xuid
+                                                                                              ,
+                                                                                              xuid
 #endif
     );
     auto player = ownerPtr.tryGetSimulatedPlayer();
@@ -101,7 +102,7 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
         if (bpos)
         {
             auto pos = bpos->bottomCenter();
-            pos.y = pos.y + 1.62001;
+            pos.y = pos.y + 1.62001f;
             player->setPos(pos);
             player->setRespawnReady(pos);
             player->setSpawnBlockRespawnPosition(*bpos, dimId);

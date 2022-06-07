@@ -50,7 +50,7 @@ _declspec(dllexport) void onPostInit()
     if (currentProtocol != TARGET_BDS_PROTOCOL_VERSION)
     {
         auto msg = fmt::format("Protocol version not match, target version: {}, current version: {}.\n",
-                        TARGET_BDS_PROTOCOL_VERSION, currentProtocol);
+                               TARGET_BDS_PROTOCOL_VERSION, currentProtocol);
         msg += fmt::format("please use the " PLUGIN_NAME " that matches the BDS version");
         throw std::exception(msg.c_str());
     }

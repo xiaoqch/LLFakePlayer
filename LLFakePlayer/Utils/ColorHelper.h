@@ -127,7 +127,7 @@ namespace ColorHelper
     template <typename T>
     inline std::string yellow_italic(T const& arg) { return fmt::format("{}{}{}§r", ColorFormat::YELLOW, ColorFormat::ITALIC, arg); }
 
-    inline std::string& transformToConsole(std::string& str)
+    inline std::string& toConsole(std::string& str)
     {
         return ColorFormat::convertToColsole(str, false);
     }
