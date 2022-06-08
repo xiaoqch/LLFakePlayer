@@ -325,7 +325,7 @@ void TickingCommand::execute(class CommandOrigin const& origin, class CommandOut
         auto dim = origin.getDimension();
         if (dimensionId_isSet)
         {
-            dim = Level::getDimension(dimensionId);
+            dim = Global<Level>->getDimension(dimensionId);
         }
         if (!dim)
             return output.error("Error in get Dimension");

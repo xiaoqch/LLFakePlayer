@@ -32,7 +32,7 @@ void debugLogNbt(CompoundTag const& tag)
     PrettySnbtFormat format = PrettySnbtFormat::getDefaultFormat(false);
     // format.setValueColor<Tag::Type::Short>(ColorFormat::colorCodeToColorMap.at("§7"));
     ((PrettySnbtFormatConsole&)format).setMaxLevel(2);
-    // logger.info("Snbt: \n{}", tag.toPrettySNBT(format));
+     logger.info("Snbt: \n{}", tag.toPrettySNBT(format));
 }
 #else
 #define debugLogNbt(...) (void)0
@@ -155,7 +155,7 @@ bool FakePlayer::login(BlockPos* bpos, class AutomaticID<class Dimension, int> d
 {
     if (mLoggingIn || isOnline())
         return false;
-    if (Level::getPlayer(mRealName))
+    if (Global<Level>->getPlayer(mRealName))
     {
         logger.warn("Player with same name \"{}\" already online", mRealName);
         return false;
@@ -535,6 +535,7 @@ THook(std::unique_ptr<CompoundTag>&, "?loadServerPlayerData@LevelStorage@@QEAA?A
       class LevelStorage* _this, std::unique_ptr<CompoundTag>& res, Player& player, bool unkBool)
 {
     DEBUGW("LevelStorage::loadServerPlayerData({}, {})", player.getNameTag(), unkBool);
+    auto ueic = player.getUserEntityIdentifierComponent();
     auto& rtn = original(_this, res, player, unkBool);
     if (player.isSimulatedPlayer())
     {

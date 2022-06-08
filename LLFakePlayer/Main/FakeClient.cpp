@@ -39,8 +39,8 @@ public:
 };
 // sizeof(ServerPlayer) == 9184
 // sizeof(SimulatedPlayer) == 9432
-constexpr size_t ServerPlayerSize = 9184;
-constexpr size_t SimulatedPlayerSize = 9432;
+constexpr size_t ServerPlayerSize = 9584;
+constexpr size_t SimulatedPlayerSize = 9832;
 //#include <MC/PlayerMovementSettings.hpp>
 
 #ifdef DEBUG
@@ -138,36 +138,77 @@ struct fmt::formatter<BlockPos>
         return fmt::v8::format_to(ctx.out(), "({}, {}, {})", p.x, p.y, p.z);
     }
 };
+template <>
+struct fmt::formatter<Tick>
+{
+    // Parses format specifications of the form ['f' | 'e'].
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        return fmt::formatter<long long>().parse(ctx);
+    }
+    template <typename FormatContext>
+    auto format(const Tick& p, FormatContext& ctx) -> decltype(ctx.out())
+    {
+        return fmt::formatter<long long>().format(p.t, ctx);
+    }
+};
+template <typename T>
+struct fmt::formatter<std::vector<T>>
+{
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto it = ctx.begin(), end = ctx.end();
+        return it;
+    }
+    template <typename FormatContext>
+    auto format(const std::vector<T>& p, FormatContext& ctx) -> decltype(ctx.out())
+    {
+        if (p.size() == 0)
+            return fmt::v8::format_to(ctx.out(), "[]");
+        fmt::v8::format_to(ctx.out(), "[");
+        fmt::v8::format_to(ctx.out(), "{}", *p.begin());
+        for (size_t index = 1; index < p.size(); ++index)
+            fmt::v8::format_to(ctx.out(), ",{}", p[index]);
+        return fmt::v8::format_to(ctx.out(), "]");
+    }
+};
+
+enum class SimulatedMovingType
+{
+    Local,
+    World,
+};
 
 class FakeSimulatedPlayer
 {
 public:
     char player[ServerPlayerSize];
 
-    _BYTE unk9184 = 0;                            // 9184 _updateMovement
-    Vec3 unk9188;                                 // 9188 _updateMovement
-    _BYTE unk9200 = 0;                            // 9200 _updateMovement,
-    Vec3 unk9204;                                 // 9204 _updateMovement
-    _BYTE unk9216 = 0;                            // 9216 _updateMovement
-    Vec3 unk9220;                                 // 9220 _updateMovement
-    _BYTE unk9232 = 0;                            // 9232 _updateMovement
-    BlockPos breakingBlockPos;                    // 9236 aiStep
-    _BYTE unk9248 = 0;                            // 9248 aiStep
-    char filler9249[3];                           //
-    unsigned char unk9252;                        // 9252 aiStep
-    _BYTE unk9253 = 0;                            // 9253
-    std::vector<BlockPos> unk9256;                // 9256 _updateMovement
-    _BYTE unk9280 = 0;                            // 9280 _updateMovement, Navigate
-    _QWORD unk9288 = 0i64;                        // 9288 _updateMovement
-    std::shared_ptr<void*> gametestHelper;        // 9296 getGameTestHelper
-    _QWORD unk9312 = 0i64;                        // 9312
-    PlayerMovementSettings movementSettings = {}; // 9320
-    float mOldY = -FLT_MAX;                       // 9424 aiStep
-    float inputSpeed = 0;                         // 9428 _getInputSpeed
+    bool mIsLocalMoving;                           // 9584 _updateMovement
+    Vec3 mMovingDirection;                         // 9588 _updateMovement
+    bool mIsMoving;                                // 9600 _updateMovement,
+    Vec3 mMovingPosition;                          // 9604 _updateMovement
+    bool mIsMovingTo;                              // 9616 _updateMovement
+    Vec3 mLookingTargetPosition;                   // 9620 _updateMovement
+    bool mIsLookingAt;                             // 9632 _updateMovement
+    BlockPos mBreakingBlockPos;                    // 9636 simulateStopDestroyingBlock
+    bool mIsBreakingBlock;                         // 9648 simulateStopDestroyingBlock
+    char filler65[3];                              //
+    FaceID mBreakingFace;                          // 9652 aiStep, simulateDestroyBlock
+    _BYTE unk69;                                   // 9653 simulateStopDestroyingBlock,
+    std::vector<Vec3> mNavigateTargets;            // 9656 simulateNavigateToLocations
+    bool mIsToTargets;                          // 9680 simulateNavigateToLocations
+    size_t mTargetIndex;                           // 9688 _updateMovement
+    std::shared_ptr<void*> mGametestHelper;        // 9696 getGameTestHelper
+    Tick mLastCooldownTick;                        // 9712, cooldown = 20 ticks, attack and use
+    PlayerMovementSettings mMovementSettings = {}; // 9720
+    float mOldY = -FLT_MAX;                        // 9824 aiStep
+    float mInputSpeed;                             // 9828 _getInputSpeed
 
     inline void breakIfStateChanged()
     {
-        return;
+        constexpr size_t off = sizeof(FakeSimulatedPlayer);
+        //return;
 #define ListenAndLog(val)                                                             \
     static auto _##val = val;                                                         \
     if (_##val != val) logger.error("[ValueChange] {}: {} -> {}", #val, _##val, val); \
@@ -176,25 +217,26 @@ public:
     static auto _##val = val;          \
     if (_##val != val) __debugbreak(); \
     _##val = val;
-        ListenAndLog(unk9184);
-        ListenAndLog(unk9188);
-        ListenAndLog(unk9200);
-        ListenAndLog(unk9204);
-        ListenAndLog(unk9216);
-        ListenAndLog(unk9220);
-        ListenAndLog(unk9232);
-        ListenAndLog(breakingBlockPos);
-        ListenAndLog(unk9248);
-        ListenAndLog(unk9252);
-        ListenAndLog(unk9253);
-        ListenAndBreak(unk9256);
-        ListenAndLog(unk9280);
-        ListenAndLog(unk9288);
-        ListenAndBreak(gametestHelper);
-        ListenAndLog(unk9312);
-        ListenAndBreak(movementSettings);
+        ListenAndLog(mIsLocalMoving);
+        ListenAndLog(mMovingDirection);
+        ListenAndLog(mIsMoving);
+        ListenAndLog(mMovingPosition);
+        ListenAndLog(mIsMovingTo);
+        ListenAndLog(mLookingTargetPosition);
+        ListenAndLog(mIsLookingAt);
+        ListenAndLog(mBreakingBlockPos);
+        ListenAndLog(mIsBreakingBlock);
+        ListenAndLog(filler65);
+        ListenAndLog(mBreakingFace);
+        ListenAndLog(unk69);
+        ListenAndLog(mNavigateTargets);
+        ListenAndLog(mHasMultiTarget);
+        ListenAndLog(mTargetIndex);
+        ListenAndBreak(mGametestHelper);
+        ListenAndLog(mLastCooldownTick);
+        ListenAndBreak(mMovementSettings);
         ListenAndLog(mOldY);
-        ListenAndLog(inputSpeed);
+        ListenAndLog(mInputSpeed);
     }
 
     inline static FakeSimulatedPlayer* from(Player* player)
@@ -204,18 +246,30 @@ public:
 };
 
 static_assert(sizeof(FakeSimulatedPlayer) == SimulatedPlayerSize);
-static_assert(offsetof(FakeSimulatedPlayer, unk9184) == 9184);
-static_assert(offsetof(FakeSimulatedPlayer, unk9200) == 9200);
-static_assert(offsetof(FakeSimulatedPlayer, unk9216) == 9216);
-static_assert(offsetof(FakeSimulatedPlayer, unk9232) == 9232);
-static_assert(offsetof(FakeSimulatedPlayer, unk9248) == 9248);
-static_assert(offsetof(FakeSimulatedPlayer, unk9253) == 9253);
-static_assert(offsetof(FakeSimulatedPlayer, unk9280) == 9280);
-static_assert(offsetof(FakeSimulatedPlayer, unk9288) == 9288);
+static_assert(offsetof(FakeSimulatedPlayer, mIsLocalMoving) == ServerPlayerSize + 0);
+static_assert(offsetof(FakeSimulatedPlayer, mMovingDirection) == ServerPlayerSize + 4);
+static_assert(offsetof(FakeSimulatedPlayer, mIsMoving) == ServerPlayerSize + 16);
+static_assert(offsetof(FakeSimulatedPlayer, mMovingPosition) == ServerPlayerSize + 20);
+static_assert(offsetof(FakeSimulatedPlayer, mIsMovingTo) == ServerPlayerSize + 32);
+static_assert(offsetof(FakeSimulatedPlayer, mLookingTargetPosition) == ServerPlayerSize + 36);
+static_assert(offsetof(FakeSimulatedPlayer, mIsLookingAt) == ServerPlayerSize + 48);
+static_assert(offsetof(FakeSimulatedPlayer, mBreakingBlockPos) == ServerPlayerSize + 52);
+static_assert(offsetof(FakeSimulatedPlayer, mIsBreakingBlock) == ServerPlayerSize + 64);
+static_assert(offsetof(FakeSimulatedPlayer, filler65) == ServerPlayerSize + 65);
+static_assert(offsetof(FakeSimulatedPlayer, mBreakingFace) == ServerPlayerSize + 68);
+static_assert(offsetof(FakeSimulatedPlayer, unk69) == ServerPlayerSize + 69);
+static_assert(offsetof(FakeSimulatedPlayer, mNavigateTargets) == ServerPlayerSize + 72);
+static_assert(offsetof(FakeSimulatedPlayer, mHasMultiTarget) == ServerPlayerSize + 96);
+static_assert(offsetof(FakeSimulatedPlayer, mTargetIndex) == ServerPlayerSize + 104);
+static_assert(offsetof(FakeSimulatedPlayer, mGametestHelper) == ServerPlayerSize + 112);
+static_assert(offsetof(FakeSimulatedPlayer, mLastCooldownTick) == ServerPlayerSize + 128);
+static_assert(offsetof(FakeSimulatedPlayer, mMovementSettings) == ServerPlayerSize + 136);
+static_assert(offsetof(FakeSimulatedPlayer, mOldY) == ServerPlayerSize + 240);
+static_assert(offsetof(FakeSimulatedPlayer, mInputSpeed) == ServerPlayerSize + 244);
 
 #endif // DEBUG
 
-namespace PlayerOffset
+namespace PlayerOffset_1_18_33
 {
 constexpr size_t mIsInitialSpawnDone = 3921;             // ServerPlayer::isPlayerInitialized
 constexpr size_t mLoading = 8952;                        // ServerPlayer::isPlayerInitialized
@@ -225,6 +279,17 @@ constexpr size_t mBlockRespawnUntilClientMessage = 3716; // ServerPlayer::_updat
 constexpr size_t mNetworkChunkPublisher = 8488;          // ServerPlayer::_updateChunkPublisherView
 constexpr size_t mServerHasMovementAuthority = 8488;     // ??
 constexpr size_t mGameMode = 4680;                       // ??
+} // namespace PlayerOffset
+namespace PlayerOffset
+{
+constexpr size_t mIsInitialSpawnDone = 4281;             // ServerPlayer::isPlayerInitialized
+constexpr size_t mLoading = 9352;                        // ServerPlayer::isPlayerInitialized
+constexpr size_t mLocalPlayerInitialized = 9354;         // ServerPlayer::isPlayerInitialized
+constexpr size_t mSimulatedOldY = 9824;                  // SimulatedPlayer::aiStep
+constexpr size_t mBlockRespawnUntilClientMessage = 4076; // Player::setBlockRespawnUntilClientMessage
+constexpr size_t mNetworkChunkPublisher = 8888;          // ServerPlayer::_updateChunkPublisherView
+constexpr size_t mServerHasMovementAuthority = 8488;     // ??
+//constexpr size_t mGameMode = 4680;                       // ??
 } // namespace PlayerOffset
 namespace
 {
@@ -236,21 +301,11 @@ inline bool isFakePlayer(Actor const& actor)
 bool trySetOldY(SimulatedPlayer& sp, float y);
 
 #include <MC/VanillaDimensions.hpp>
-#include <MC/NetworkIdentifier.hpp>
-class UserEntityIdentifierComponent
-{
-public:
-    NetworkIdentifier mNetworkId;
-    unsigned char mClientSubId;
-    mce::UUID mUUID;
-    std::unique_ptr<Certificate> mCertificate;
-};
 
-struct NetworkIdentifierWithSubId
+DECLSPEC_ALIGN(8) struct NetworkIdentifierWithSubId
 {
     NetworkIdentifier mNetworkId;
     unsigned char mSubId; // 160
-    char filler161[7];
 
     inline ServerPlayer* getServerPlayer() const
     {
@@ -289,7 +344,7 @@ void handle(SimulatedPlayer* sp, RespawnPacket* packet)
     auto& uniqueId = sp->getUniqueID();
     Schedule::nextTick(
         [state, uniqueId]() {
-            auto sp = Level::getPlayer(uniqueId);
+            auto sp = Global<Level>->getPlayer(uniqueId);
             if (state == PlayerRespawnState::SERVER_SEARCHING)
             {
                 // sp->setBlockRespawnUntilClientMessage(false);
@@ -382,7 +437,7 @@ void handle(SimulatedPlayer* sp, ModalFormRequestPacket* packet)
     auto formId = packet->mFormId;
     Schedule::nextTick(
         [uniqueId, formId]() {
-            auto sp = Level::getPlayer(uniqueId);
+            auto sp = Global<Level>->getPlayer(uniqueId);
             auto res = MinecraftPackets::createPacket(MinecraftPacketIds::ModalFormResponse);
             ((ModalFormResponsePacket*)res.get())->mFormId = formId;
             ((ModalFormResponsePacket*)res.get())->mData = "null";
@@ -429,7 +484,6 @@ void handlePacket(SimulatedPlayer* sp, Packet* packet)
 {
 #ifdef DEBUG
     FakeSimulatedPlayer* fp = FakeSimulatedPlayer::from(sp);
-    fp->breakIfStateChanged();
 #endif // DEBUG
 
     switch (packet->getId())
@@ -547,7 +601,7 @@ TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacke
             {
                 auto pkt = (InventorySlotPacket*)&packet;
                 Schedule::nextTick(
-                    [clientSubID, ctn = pkt->mContainerId, slot = pkt->mSlot, item = ItemStack::fromDescriptor(pkt->mDescriptor, *Level::getBlockPalette(), true)]() {
+                    [clientSubID, ctn = pkt->mContainerId, slot = pkt->mSlot, item = ItemStack::fromDescriptor(pkt->mDescriptor, Global<Level>->getBlockPalette(), true)]() {
                         auto sp = Global<ServerNetworkHandler>->getServerPlayer(FakePlayer::mNetworkID, clientSubID);
                         if (isFakePlayer(*sp))
                         {
@@ -661,6 +715,11 @@ TInstanceHook(void, "?tickWorld@Player@@UEAAXAEBUTick@@@Z",
     //  _updateChunkPublisherView will be called after Player::tick in ServerPlayer::tick
     if (isFakePlayer(*this))
     {
+#ifdef DEBUG
+        if (this->getUserEntityIdentifierComponent()->isPrimaryClient())
+            reinterpret_cast<FakeSimulatedPlayer*>(this)->breakIfStateChanged();
+#endif // DEBUG
+
         // Force to call the implementation of ServerPlayer
         SymCall("?_updateChunkPublisherView@ServerPlayer@@MEAAXAEBVVec3@@M@Z",
                 void, ServerPlayer*, Vec3 const&, float)((ServerPlayer*)this, getPosition(), 16.0f);
@@ -819,16 +878,27 @@ TClasslessInstanceHook(void, "?sendActorEquippedArmor@ActorEventCoordinator@@QEA
 // ================= Test =================
 
 
-TInstanceHook(ServerPlayer*, "??0ServerPlayer@@QEAA@AEAVLevel@@AEAVPacketSender@@AEAVNetworkHandler@@AEAVActiveTransfersManager@Server@ClientBlobCache@@W4GameType@@AEBVNetworkIdentifier@@EV?$function@$$A6AXAEAVServerPlayer@@@Z@std@@VUUID@mce@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$unique_ptr@VCertificate@@U?$default_delete@VCertificate@@@std@@@std@@H_NAEAVEntityContext@@@Z",
-              ServerPlayer, class Level& level, class PacketSender& sender, class NetworkHandler& handler,
-              class ActiveTransfersManager& blobCache, enum GameType gameType,
-              class NetworkIdentifier const& nid, unsigned char subId,
-              class std::function<void(class ServerPlayer&)> onPlayerLoadedCallback, class mce::UUID uuid, std::string const& clientId,
-              class std::unique_ptr<Certificate> cert, int unk_int, bool unk_bool, class EntityContext& entity)
+TInstanceHook(ServerPlayer*, "??0ServerPlayer@@QEAA@AEAVLevel@@AEAVPacketSender@@AEAVNetworkHandler@@AEAVActiveTransfersManager@Server@ClientBlobCache@@W4GameType@@AEBVNetworkIdentifier@@EV?$function@$$A6AXAEAVServerPlayer@@@Z@std@@VUUID@mce@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@8V?$unique_ptr@VCertificate@@U?$default_delete@VCertificate@@@std@@@std@@H_NAEAVEntityContext@@@Z",
+              ServerPlayer,
+              class Level& level,
+              class PacketSender& sender,
+              class NetworkHandler& handler,
+              class ClientBlobCache::Server::ActiveTransfersManager& blobCache,
+              enum GameType gameType,
+              class NetworkIdentifier const& nid,
+              unsigned char subId,
+              class std::function<void(class ServerPlayer&)> onPlayerLoadedCallback,
+              class mce::UUID uuid,
+              std::string const& playFabId,
+              std::string const& clientId,
+              std::unique_ptr<class Certificate> cert,
+              int unk_int,
+              bool unk_bool,
+              class EntityContext& entity)
 {
-    DEBUGL("ServerPlayer(level, sender, handler, blobCache, gameType = {}, nid, subId = {}, func, uuid = {}, clientId = {}, cert, unk_int = {}, unk_bool = {}, entity)",
-           (int)gameType, (int)subId, uuid.asString(), clientId, unk_int, unk_bool);
-    auto rtn = original(this, level, sender, handler, blobCache, gameType, nid, subId, onPlayerLoadedCallback, uuid, clientId, std::move(cert), unk_int, unk_bool, entity);
+    DEBUGL("ServerPlayer(level, sender, handler, blobCache, gameType = {}, nid, subId = {}, func, uuid = {}, playFabId = {}, clientId = {}, cert, unk_int = {}, unk_bool = {}, entity)",
+           (int)gameType, (int)subId, uuid.asString(), playFabId, clientId, unk_int, unk_bool);
+    auto rtn = original(this, level, sender, handler, blobCache, gameType, nid, subId, onPlayerLoadedCallback, uuid, playFabId, clientId, std::move(cert), unk_int, unk_bool, entity);
     return rtn;
 }
 

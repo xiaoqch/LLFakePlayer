@@ -424,9 +424,9 @@ class PlayerActionPacket : public Packet
 {
 public:
     BlockPos mPosition; // 48
-#if BDS_VER > 11910
+//#if BDS_VER > 11910
     BlockPos mPosition2; // 60
-#endif
+//#endif
     FaceID mBlockFace;            // 72
     PlayerActionType mActionType; // 76
     ActorRuntimeID mRuntimeID;    // 80

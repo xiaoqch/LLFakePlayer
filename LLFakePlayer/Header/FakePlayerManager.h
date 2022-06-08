@@ -476,8 +476,8 @@ public:
         if (mStorage->get(serverId, data))
             return data;
 #ifdef DEBUG
-        mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
-        DEBUGBREAK();
+        //mLogger.error("Error in {} - {}", __FUNCTION__, serverId);
+        //DEBUGBREAK();
 #endif // DEBUG
         return "";
     };
