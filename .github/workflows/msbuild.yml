@@ -5,11 +5,11 @@ on: [ push ]
 env:
   PLUGIN_NAME: LLFakePlayer
   SOLUTION_FILE_PATH: ./LLFakePlayer.sln
-  VERSION_FILE_PATH: LLFakePlayer/Version.h
+  VERSION_FILE_PATH: LLFakePlayer/Main/Version.h
   BUILD_CONFIGURATION: Release
   Platform: X64
   SDK_DIR: ./LiteLoaderSDK
-  BDS_VERSION: 1.18.33.02
+  BDS_VERSION: 1.19.1.01
 
 jobs:
   build:
