@@ -26,6 +26,7 @@ struct FakePlayerState
     bool online = false;
     bool autoLogin = false;
     time_t lastUpdateTime;
+    size_t maxCooldownTicks;
 
     FPAPI std::string toJson();
 };

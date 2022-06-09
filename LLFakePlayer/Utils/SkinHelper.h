@@ -1,6 +1,8 @@
 #pragma once
 #include <Global.h>
-#if flase
+//#define SKIN_HELPER
+
+#ifdef SKIN_HELPER
 //#include <MC/SerializedSkin.hpp>
 //#include <MC/AnimatedImageData.hpp>
 //#include <MC/SemVersion.hpp>
@@ -66,29 +68,29 @@ private:
 };
 namespace mce
 {
-// class Blob
-//{
-// public:
-//     void (*deleter)(unsigned char*) = &defaultDeleter;
-//     unsigned char* data = nullptr;
-//     size_t size = 0;
-//
-//     MCAPI Blob(class mce::Blob&&);
-//     MCAPI Blob();
-//     MCAPI Blob(unsigned __int64);
-//     MCAPI ~Blob();
-//     MCAPI class Blob& operator=(class mce::Blob&&);
-//     MCAPI unsigned char const* cend(void) const;
-//     //MCAPI unsigned char const* cbegin(void) const;
-//     MCAPI static void defaultDeleter(unsigned char*);
-//     constexpr unsigned char* begin(void) const {
-//         return data;
-//     };
-//     constexpr unsigned char* end(void) const
-//     {
-//         return data + size;
-//     }
-// };
+ class Blob
+{
+ public:
+     void (*deleter)(unsigned char*) = &defaultDeleter;
+     unsigned char* data = nullptr;
+     size_t size = 0;
+
+     MCAPI Blob(class mce::Blob&&);
+     MCAPI Blob();
+     MCAPI Blob(unsigned __int64);
+     MCAPI ~Blob();
+     MCAPI class Blob& operator=(class mce::Blob&&);
+     MCAPI unsigned char const* cend(void) const;
+     //MCAPI unsigned char const* cbegin(void) const;
+     MCAPI static void defaultDeleter(unsigned char*);
+     constexpr unsigned char* begin(void) const {
+         return data;
+     };
+     constexpr unsigned char* end(void) const
+     {
+         return data + size;
+     }
+ };
 namespace BlobHelper
 {
 MCAPI class mce::Blob clone(class mce::Blob const&);
@@ -111,33 +113,33 @@ inline std::vector<unsigned char> getVectorFromBlob(class mce::Blob const& blob)
 }
 } // namespace BlobHelper
 
-// struct Image
-//{
-//     ImageFormat mFormat;  // 0
-//     unsigned int mWidth;  // 4
-//     unsigned int mHeight; // 8
-//     ImageUsage mUsage;    // 12
-//     Blob mBlob;           // 16
-//
-//     inline bool savePngTo(std::string const& filePath) const
-//     {
-//         auto buffer = mce::BlobHelper::getVectorFromBlob(mBlob);
-//         auto err = lodepng::encode(filePath, buffer, mWidth, mHeight);
-//         return err == 0;
-//     }
-//
-//     inline static Image readPngFrom(std::string const& filePath)
-//     {
-//         return Image(0,0,(mce::ImageFormat)0,(mce::ImageUsage)0);
-//     }
-//
-//     MCAPI ~Image();
-//     MCAPI Image(unsigned int, unsigned int, enum mce::ImageFormat, enum mce::ImageUsage);
-//     MCAPI struct mce::Image clone(void) const;
-//     MCAPI bool isEmpty(void) const;
-//     MCAPI void resizeImageBytesToFitImageDescription(void);
-//
-// };
+ struct Image
+{
+     ImageFormat mFormat;  // 0
+     unsigned int mWidth;  // 4
+     unsigned int mHeight; // 8
+     ImageUsage mUsage;    // 12
+     Blob mBlob;           // 16
+
+     inline bool savePngTo(std::string const& filePath) const
+     {
+         auto buffer = mce::BlobHelper::getVectorFromBlob(mBlob);
+         auto err = lodepng::encode(filePath, buffer, mWidth, mHeight);
+         return err == 0;
+     }
+
+     inline static Image readPngFrom(std::string const& filePath)
+     {
+         return Image(0,0,(mce::ImageFormat)0,(mce::ImageUsage)0);
+     }
+
+     MCAPI ~Image();
+     MCAPI Image(unsigned int, unsigned int, enum mce::ImageFormat, enum mce::ImageUsage);
+     MCAPI struct mce::Image clone(void) const;
+     MCAPI bool isEmpty(void) const;
+     MCAPI void resizeImageBytesToFitImageDescription(void);
+
+ };
 } // namespace mce
 class TintMapColor
 {
@@ -361,4 +363,4 @@ namespace SkinHelper
 bool init();
 bool updatePlayerSkin(Player& player, SerializedSkin const& skin);
 }; // namespace SkinHelper
-#endif
+#endif // SKIN_HELPER
