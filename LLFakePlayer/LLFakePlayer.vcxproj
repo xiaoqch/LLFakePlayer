@@ -218,6 +218,7 @@ LibraryBuilder.exe -o ..\Lib\
     <ClInclude Include="Main\Version.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.github\workflows\msbuild.yml" />
     <None Include="cpp.hint" />
     <None Include="Resource\LLFakePlayer.aps" />
   </ItemGroup>

@@ -161,6 +161,9 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="cpp.hint" />
+    <None Include="..\.github\workflows\msbuild.yml">
+      <Filter>Other</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource\LLFakePlayer.rc">

@@ -45,18 +45,17 @@ _declspec(dllexport) void onPostInit()
 #else
     // Set global SEH-Exception handler
     _set_se_translator(seh_exception::TranslateSEHtoCE);
+
+#endif // DEBUG
 #ifdef TARGET_BDS_PROTOCOL_VERSION
     auto currentProtocol = LL::getServerProtocolVersion();
     if (currentProtocol != TARGET_BDS_PROTOCOL_VERSION)
     {
-        auto msg = fmt::format("Protocol version not match, target version: {}, current version: {}.\n",
+        logger.error("Protocol version not match, target version: {}, current version: {}.",
                                TARGET_BDS_PROTOCOL_VERSION, currentProtocol);
-        msg += fmt::format("please use the " PLUGIN_NAME " that matches the BDS version");
-        throw std::exception(msg.c_str());
+        logger.error("please use the " PLUGIN_NAME " that matches the BDS version");
     }
 #endif // TARGET_BDS_PROTOCOL_VERSION
-
-#endif // DEBUG
     if constexpr (ENABLE_CONFIG)
         Config::initConfig();
     entry();
