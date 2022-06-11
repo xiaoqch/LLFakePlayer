@@ -2,6 +2,7 @@
 #include "TickingCommand.h"
 #include "CommandHelper.h"
 #include "Utils/ColorHelper.h"
+#include "Header/SimulatedPlayerHelper.h"
 #include <MC/Dimension.hpp>
 
 #ifdef PLUGIN_IS_BETA

@@ -1,12 +1,13 @@
 #include <pch.h>
 #include <MC/SimulatedPlayer.hpp>
+#include <MC/UserEntityIdentifierComponent.hpp>
+#include "Header/SimulatedPlayerHelper.h"
 
 constexpr size_t MaxCooldownTicks = 1;
 
 // Fake SimulatedPlayer Structure
-#ifdef DEBUG
-constexpr size_t ServerPlayerSize = 9584;
-constexpr size_t SimulatedPlayerSize = 9832;
+constexpr size_t ServerPlayerSize = 9184;
+constexpr size_t SimulatedPlayerSize = 9432;
 
 using _QWORD = unsigned __int64;
 using _DWORD = unsigned int;
@@ -41,6 +42,7 @@ struct PlayerMovementSettings
         return !(*this == right);
     }
 };
+#ifdef DEBUG
 static_assert(sizeof(PlayerMovementSettings) == 104);
 
 template <>
@@ -136,6 +138,7 @@ struct fmt::formatter<std::vector<T>>
         return fmt::v8::format_to(ctx.out(), "]");
     }
 };
+#endif // DEBUG
 
 enum class SimulatedMovingType
 {
@@ -171,6 +174,7 @@ public:
     float mOldY = -FLT_MAX;                        // 9824 aiStep
     float mInputSpeed;                             // 9828 _getInputSpeed
 
+    #ifdef DEBUG
     inline void breakIfStateChanged()
     {
         return;
@@ -205,7 +209,7 @@ public:
         ListenAndLog(mOldY);
         ListenAndLog(mInputSpeed);
     }
-
+    #endif //
     inline static FakeSimulatedPlayer* from(Player* player)
     {
         return reinterpret_cast<FakeSimulatedPlayer*>(player);
@@ -241,11 +245,12 @@ static_assert(offsetof(FakeSimulatedPlayer, mInputSpeed) == ServerPlayerSize + 2
 void tickFakeSimulatedPlayer(SimulatedPlayer& sp)
 {
     auto& fsp = FakeSimulatedPlayer::from(sp);
+#ifdef DEBUG
     if (sp.getUserEntityIdentifierComponent()->isPrimaryClient())
         fsp.breakIfStateChanged();
-    auto currentServerTick = Global<Level>->getCurrentServerTick();
+#endif // DEBUG
+    auto currentServerTick = Global<Level>->getCurrentServerTick().t;
     if (currentServerTick + Config::DefaultMaxCooldownTicks < fsp.mLastCooldownTick)
         fsp.mLastCooldownTick = currentServerTick + Config::DefaultMaxCooldownTicks;
 }
 
-#endif // DEBUG

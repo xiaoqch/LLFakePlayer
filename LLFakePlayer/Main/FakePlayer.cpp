@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "FakePlayer.h"
+#include "Header/SimulatedPlayerHelper.h"
 #include "Header/FakePlayerManager.h"
+#include <MC/NetworkIdentifier.hpp>
+#include <MC/RakNet.hpp>
 
 bool FakePlayer::mLoggingIn = false;
 FakePlayer* FakePlayer::mLoggingInPlayer = nullptr;

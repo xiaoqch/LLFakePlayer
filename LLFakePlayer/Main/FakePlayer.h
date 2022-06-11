@@ -1,6 +1,7 @@
 #pragma once
 #include <Global.h>
 #include "FakePlayerAPI.h"
+#include "Header/SimulatedPlayerHelper.h"
 #include <MC/SimulatedPlayer.hpp>
 
 class FakePlayerManager;

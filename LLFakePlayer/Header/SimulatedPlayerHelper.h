@@ -1,11 +1,37 @@
 #pragma once
 #include <MC/SimulatedPlayer.hpp>
-
 #include <MC/ServerNetworkHandler.hpp>
-#include <MC/Level.hpp>
 #include <MC/StackResultStorageEntity.hpp>
 #include <MC/OwnerStorageEntity.hpp>
+#define BDS_1_18
 
+template <>
+class OwnerPtrT<struct EntityRefTraits> : public OwnerStorageEntity
+{
+    char filler[24];
+
+public:
+    MCAPI ~OwnerPtrT();
+    OwnerPtrT(OwnerPtrT&& right) noexcept
+        : OwnerStorageEntity(std::move(right))
+    {
+    }
+    inline OwnerPtrT& operator=(OwnerPtrT&& right) noexcept
+    {
+        *this = std::move(right);
+        return *this;
+    }
+    inline SimulatedPlayer* tryGetSimulatedPlayer(bool b = false)
+    {
+        return SimulatedPlayer::tryGetFromEntity(this->_getStackRef(), b);
+    }
+};
+
+#ifdef BDS_1_18
+#include "Utils/FakeLevel.h"
+#else
+#include <MC/Level.hpp>
+#endif
 
 inline class SimulatedPlayer* getSimulatedPlayerByUuid(class mce::UUID const& a0)
 {
@@ -17,28 +43,6 @@ inline class SimulatedPlayer* getSimulatedPlayerByUuid(class mce::UUID const& a0
         return static_cast<SimulatedPlayer*>(sp);
     return nullptr;
 }
-
-template <>
-class OwnerPtrT<struct EntityRefTraits>
-{
-    char filler[24];
-
-public:
-    MCAPI ~OwnerPtrT();
-    OwnerPtrT(OwnerPtrT&& right) noexcept
-    {
-        reinterpret_cast<OwnerStorageEntity*>(this)->OwnerStorageEntity::OwnerStorageEntity(reinterpret_cast<OwnerStorageEntity&&>(right));
-    }
-    inline OwnerPtrT& operator=(OwnerPtrT&& right) noexcept
-    {
-        *reinterpret_cast<OwnerStorageEntity*>(this) = reinterpret_cast<OwnerStorageEntity&&>(right);
-        return *this;
-    }
-    inline SimulatedPlayer* tryGetSimulatedPlayer(bool b = false)
-    {
-        return SimulatedPlayer::tryGetFromEntity(reinterpret_cast<OwnerStorageEntity*>(this)->_getStackRef(), b);
-    }
-};
 
 namespace SimulatedPlayerHelper
 {
@@ -70,7 +74,9 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
             player->setRespawnReady(pos);
             player->setSpawnBlockRespawnPosition(*bpos, dimId);
             player->setLocalPlayerAsInitialized();
+#ifndef BDS_1_18
             player->doInitialSpawn();
+#endif
         }
         else
         {
@@ -78,7 +84,9 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
             player->setPos(pos);
             player->setRespawnReady(pos);
             player->setLocalPlayerAsInitialized();
+#ifndef BDS_1_18
             player->doInitialSpawn();
+#endif
         }
         auto pos3 = player->getPos();
     }

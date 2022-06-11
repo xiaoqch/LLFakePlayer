@@ -10,6 +10,7 @@
 #include <MC/NetworkHandler.hpp>
 #include <MC/ServerNetworkHandler.hpp>
 #include <MC/SimulatedPlayer.hpp>
+#include <MC/Certificate.hpp>
 #include <ScheduleAPI.h>
 
 class DimensionStateSystem

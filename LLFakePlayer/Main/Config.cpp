@@ -56,6 +56,7 @@ std::string serialize()
     SerializeVaule(ChunkRadius);
     SerializeVaule(DebugMode);
     SerializeVaule(DataBasePath);
+    SerializeVaule(DefaultMaxCooldownTicks);
 
     return json.dump(4);
 }
@@ -69,6 +70,7 @@ bool deserialize(std::string const& jsonStr)
     DeserializeVaule(ChunkRadius);
     DeserializeVaule(DebugMode);
     DeserializeVaule(DataBasePath);
+    DeserializeVaule(DefaultMaxCooldownTicks);
 
     return !needUpdate;
 }

@@ -210,6 +210,7 @@ LibraryBuilder.exe -o ..\Lib\
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource\resource.h" />
     <ClInclude Include="Command\TickingCommand.h" />
+    <ClInclude Include="Utils\FakeLevel.h" />
     <ClInclude Include="Utils\SkinHelper.h" />
     <ClInclude Include="Utils\ColorHelper.h" />
     <ClInclude Include="Utils\DebugHelper.h" />

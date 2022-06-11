@@ -11,7 +11,7 @@
 #include <MC/RakNet.hpp>
 #include <MC/DBStorage.hpp>
 #include <Utils/CryptHelper.h>
-#include "SimulatedPlayerHelper.h"
+#include "Header/SimulatedPlayerHelper.h"
 #include "Utils/ColorHelper.h"
 #include <LoggerAPI.h>
 #include "Utils/MyPackets.h"

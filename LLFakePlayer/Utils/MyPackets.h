@@ -2,7 +2,7 @@
 #include <Global.h>
 #include <MC/BinaryStream.hpp>
 #include <MC/Block.hpp>
-#include <MC/Level.hpp>
+#include "SimulatedPlayerHelper.h"
 #include <MC/MinecraftEventing.hpp>
 #include <MC/NetworkIdentifier.hpp>
 #include <MC/NetworkItemStackDescriptor.hpp>
