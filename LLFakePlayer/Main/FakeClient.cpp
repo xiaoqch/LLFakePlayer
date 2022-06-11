@@ -442,9 +442,7 @@ TInstanceHook(void, "?tickWorld@Player@@UEAAXAEBUTick@@@Z",
     //  _updateChunkPublisherView will be called after Player::tick in ServerPlayer::tick
     if (this->isSimulatedPlayer())
     {
-#ifdef DEBUG
         tickFakeSimulatedPlayer(*reinterpret_cast<SimulatedPlayer*>(this));
-#endif // DEBUG
 
         // Force to call the implementation of ServerPlayer
         SymCall("?_updateChunkPublisherView@ServerPlayer@@MEAAXAEBVVec3@@M@Z",

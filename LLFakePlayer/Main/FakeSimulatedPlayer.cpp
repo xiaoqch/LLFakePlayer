@@ -1,10 +1,7 @@
 #include <pch.h>
 #include <MC/SimulatedPlayer.hpp>
 
-constexpr size_t MaxCooldownTicks = 1;
-
 // Fake SimulatedPlayer Structure
-#ifdef DEBUG
 constexpr size_t ServerPlayerSize = 9584;
 constexpr size_t SimulatedPlayerSize = 9832;
 
@@ -41,6 +38,7 @@ struct PlayerMovementSettings
         return !(*this == right);
     }
 };
+#ifdef DEBUG
 static_assert(sizeof(PlayerMovementSettings) == 104);
 
 template <>
@@ -143,6 +141,8 @@ enum class SimulatedMovingType
     World,
 };
 
+#endif // DEBUG
+
 class FakeSimulatedPlayer
 {
     FakeSimulatedPlayer() = delete;
@@ -171,6 +171,7 @@ public:
     float mOldY = -FLT_MAX;                        // 9824 aiStep
     float mInputSpeed;                             // 9828 _getInputSpeed
 
+#ifdef DEBUG
     inline void breakIfStateChanged()
     {
         return;
@@ -205,6 +206,7 @@ public:
         ListenAndLog(mOldY);
         ListenAndLog(mInputSpeed);
     }
+#endif // DEBUG
 
     inline static FakeSimulatedPlayer* from(Player* player)
     {
@@ -215,6 +217,19 @@ public:
         return reinterpret_cast<FakeSimulatedPlayer&>(player);
     }
 };
+
+void tickFakeSimulatedPlayer(SimulatedPlayer& sp)
+{
+    auto& fsp = FakeSimulatedPlayer::from(sp);
+#ifdef DEBUG
+    if (sp.getUserEntityIdentifierComponent()->isPrimaryClient())
+        fsp.breakIfStateChanged();
+#endif // DEBUG
+    auto currentServerTick = Global<Level>->getCurrentServerTick();
+    if (currentServerTick + Config::DefaultMaxCooldownTicks < fsp.mLastCooldownTick)
+        fsp.mLastCooldownTick = currentServerTick + Config::DefaultMaxCooldownTicks;
+}
+
 
 static_assert(sizeof(FakeSimulatedPlayer) == SimulatedPlayerSize);
 static_assert(offsetof(FakeSimulatedPlayer, mIsLocalMoving) == ServerPlayerSize + 0);
@@ -237,15 +252,3 @@ static_assert(offsetof(FakeSimulatedPlayer, mLastCooldownTick) == ServerPlayerSi
 static_assert(offsetof(FakeSimulatedPlayer, mMovementSettings) == ServerPlayerSize + 136);
 static_assert(offsetof(FakeSimulatedPlayer, mOldY) == ServerPlayerSize + 240);
 static_assert(offsetof(FakeSimulatedPlayer, mInputSpeed) == ServerPlayerSize + 244);
-
-void tickFakeSimulatedPlayer(SimulatedPlayer& sp)
-{
-    auto& fsp = FakeSimulatedPlayer::from(sp);
-    if (sp.getUserEntityIdentifierComponent()->isPrimaryClient())
-        fsp.breakIfStateChanged();
-    auto currentServerTick = Global<Level>->getCurrentServerTick();
-    if (currentServerTick + Config::DefaultMaxCooldownTicks < fsp.mLastCooldownTick)
-        fsp.mLastCooldownTick = currentServerTick + Config::DefaultMaxCooldownTicks;
-}
-
-#endif // DEBUG
