@@ -49,7 +49,7 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
     if (handler == nullptr)
         return nullptr;
     std::string xuid = "";
-#if BDS_VER > 11910
+#if BDS_VER >= 11910
     OwnerPtrT<EntityRefTraits> ownerPtr = handler->createSimulatedPlayer(name, dimId, xuid);
 #else
     OwnerPtrT<EntityRefTraits> ownerPtr = handler->createSimulatedPlayer(name, dimId);
@@ -61,7 +61,10 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
         player->postLoad(/* isNewPlayer */ false);
         Level& level = player->getLevel();
         level.addUser(std::move(ownerPtr));
-        //execute @a ~~~ tp ~~~
+        // fp remove aa
+        // fp create aa
+        // fp login aa
+        // execute @a ~~~ tp ~~~
         if (bpos)
         {
             auto pos = bpos->bottomCenter();
@@ -74,11 +77,14 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
         }
         else
         {
-            auto pos = player->getPos();
-            player->setPos(pos);
-            player->setRespawnReady(pos);
+            //auto pos = player->getPos();
+            //if (pos.y < 32767.0f)
+            //{
+            //    player->setPos(pos);
+            //    player->setRespawnReady(pos);
+            //}
             player->setLocalPlayerAsInitialized();
-            player->doInitialSpawn();
+            //player->doInitialSpawn();
         }
         auto pos3 = player->getPos();
     }

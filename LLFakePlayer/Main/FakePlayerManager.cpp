@@ -324,6 +324,7 @@ TInstanceHook(SimulatedPlayer*, "??0SimulatedPlayer@@QEAA@AEAVLevel@@AEAVPacketS
     for (auto& sym : syms)
         logger.warn(sym);
     onPlayerLoadedCallback = [=](ServerPlayer& sp) {
+        DEBUGW("onPlayerLoadedCallback - {}", sp.getName());
         onPlayerLoadedCallback(sp);
     };
 #endif // DEBUG
