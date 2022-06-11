@@ -1,7 +1,10 @@
 #pragma once
+
 class SimulatedPlayer;
 
-void UpdateLLFakePlayerSoftEnum();
+//#define COMMAND_AS_SUB_COMMAND
+extern void UpdateLLFakePlayerSoftEnum();
+
 class FakePlayerCommand : public Command
 {
     static std::vector<std::string> mList;
@@ -14,7 +17,9 @@ class FakePlayerCommand : public Command
         Remove,
         Login,
         Logout,
+#ifdef COMMAND_AS_SUB_COMMAND
         As,
+#endif // COMMAND_AS_SUB_COMMAND
         Import,
     } operation;
     CommandPosition commandPos;
@@ -26,25 +31,3 @@ class FakePlayerCommand : public Command
 public:
     static void setup(CommandRegistry& registry);
 };
-
-#ifdef PLUGIN_IS_BETA
-
-// =============== Test ===============
-class TickingCommand : public Command
-{
-    CommandSelector<Player> selector;
-    CommandPosition commandPos;
-    int dimensionId;
-    int range;
-    bool selector_isSet;
-    bool commandPos_isSet;
-    bool dimensionId_isSet;
-    bool range_isSet;
-
-    virtual void execute(class CommandOrigin const& origin, class CommandOutput& output) const override;
-
-public:
-    static void setup(CommandRegistry& registry);
-};
-
-#endif // PLUGIN_IS_BETA

@@ -14,6 +14,5 @@
 #include "Main/Config.h"
 #include <RegCommandAPI.h>
 #include <MC/Level.hpp>
-#include <MC/Minecraft.hpp>
 
 #endif //PCH_H

@@ -8,9 +8,6 @@
     <Filter Include="Main">
       <UniqueIdentifier>{762b2f65-7b2d-4fdc-91db-9b5f52498b1f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Default">
-      <UniqueIdentifier>{c74cb326-a36a-4064-8e4e-05cde8a8309e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Lib">
       <UniqueIdentifier>{d6d8b7a2-010d-4126-82d0-ec77948a61cd}</UniqueIdentifier>
     </Filter>
@@ -28,6 +25,9 @@
     </Filter>
     <Filter Include="third-party\lodepng">
       <UniqueIdentifier>{8825f76a-d179-47a3-a3e1-f2dd36abd7d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Other">
+      <UniqueIdentifier>{c74cb326-a36a-4064-8e4e-05cde8a8309e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,13 +51,7 @@
     <ClCompile Include="Main\LLFakePlayer.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="Main\SimulatedPlayerHelper.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
     <ClCompile Include="Main\Config.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="Main\dllmain.cpp">
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="Utils\ColorHelper.cpp">
@@ -66,25 +60,44 @@
     <ClCompile Include="Utils\MyPackets.cpp">
       <Filter>Packet</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="FakePlayerAPI.cpp" />
     <ClCompile Include="..\lodepng\lodepng.cpp">
       <Filter>third-party\lodepng</Filter>
     </ClCompile>
     <ClCompile Include="Main\FakeClient.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="Main\FakePlayerCommand.cpp">
+    <ClCompile Include="Command\FakePlayerCommand.cpp">
       <Filter>Command</Filter>
     </ClCompile>
-    <ClCompile Include="SkinHelper.cpp">
+    <ClCompile Include="Utils\SkinHelper.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\SimulatedPlayerHelper.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\dllmain.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Other\pch.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\FakePlayerAPI.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\TickingCommand.cpp">
+      <Filter>Command</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\FakePlayerStorage.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\FakePlayer.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\FakeSimulatedPlayer.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Main\framework.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="Main\Config.h">
       <Filter>Main</Filter>
     </ClInclude>
@@ -97,37 +110,48 @@
     <ClInclude Include="Utils\DebugHelper.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Header\SimulatedPlayerHelper.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="Header\FakePlayerManager.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="Utils\MyPackets.h">
       <Filter>Packet</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="Version.h">
+    <ClInclude Include="Main\Version.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="FakePlayerAPI.h" />
     <ClInclude Include="..\lodepng\lodepng.h">
       <Filter>third-party\lodepng</Filter>
     </ClInclude>
-    <ClInclude Include="Main\FakePlayerCommand.h">
+    <ClInclude Include="Command\FakePlayerCommand.h">
       <Filter>Command</Filter>
     </ClInclude>
-    <ClInclude Include="SkinHelper.h">
+    <ClInclude Include="Utils\SkinHelper.h">
       <Filter>Utils</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Resource\vftable_ServerPlayer.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="Resource\vftable_SimulatedPlayer.txt">
-      <Filter>资源文件</Filter>
-    </Text>
+    <ClInclude Include="Other\framework.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\SimulatedPlayerHelper.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\FakePlayerAPI.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\TickingCommand.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\CommandHelper.h">
+      <Filter>Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\FakePlayerStorage.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\FakePlayer.h">
+      <Filter>Main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resource\LLFakePlayer.aps">

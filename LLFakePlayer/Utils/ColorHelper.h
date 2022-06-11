@@ -3,7 +3,6 @@
 
 namespace ColorHelper
 {
-
     template <typename T>
     inline std::string aqua(T const& arg) { return fmt::format("{}{}§r", ColorFormat::AQUA, arg); }
     template <typename T>
@@ -130,6 +129,10 @@ namespace ColorHelper
     inline std::string& toConsole(std::string& str)
     {
         return ColorFormat::convertToColsole(str, false);
+    }
+    inline std::string toConsole(std::string&& str)
+    {
+        return ColorFormat::convertToColsole(std::move(str), false);
     }
 
 }; // namespace ColorHelper

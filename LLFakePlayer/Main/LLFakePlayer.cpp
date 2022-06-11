@@ -1,8 +1,9 @@
 #include <pch.h>
 #include <EventAPI.h>
 #include "FakePlayerManager.h"
-#include "FakePlayerCommand.h"
-#include "../SkinHelper.h"
+#include "Command/FakePlayerCommand.h"
+#include "Command/TickingCommand.h"
+#include "Utils/SkinHelper.h"
 #include <MC/NetworkIdentifier.hpp>
 
 extern bool ExportRemoteCallApis();

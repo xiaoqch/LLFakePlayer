@@ -1,7 +1,7 @@
 #include "pch.h"
-#if false
-
 #include "SkinHelper.h"
+#ifdef SKIN_HELPER
+
 #include <EventAPI.h>
 #include <ScheduleAPI.h>
 #include <MC/SimulatedPlayer.hpp>
@@ -80,4 +80,4 @@ auto id = Schedule::nextTick([]() {
 #endif // DEBUG
 
 
-#endif // false
+#endif // SKIN_HELPER

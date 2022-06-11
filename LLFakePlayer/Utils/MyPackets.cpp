@@ -287,8 +287,8 @@ void onPacketRead(std::string const& type)
 
 //#include <FakePlayerManager.h>
 // bool FakePlayerLogin = false;
-//ForEachPacket(HookHandlePacket);
- ForEachPacket(HookPacketWrite);
+// ForEachPacket(HookHandlePacket);
+ForEachPacket(HookPacketWrite);
 ForEachPacket(HookPacketRead);
 #define LogPacketTimes(packet) logger.warn("{:4},{:4},{}", writeTimes<packet>, readTimes<packet>, #packet)
 

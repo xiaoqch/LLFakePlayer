@@ -1,5 +1,5 @@
 #pragma once
-#include "../Version.h"
+#include "Main/Version.h"
 
 #include <LoggerAPI.h>
 #include <third-party/magic_enum/magic_enum.hpp>
@@ -40,12 +40,12 @@ llfakeplayer import - Import data from ddf8196's FakePlayer Client
 #define PLUGIN_LOG_PATH LOG_DIR PLUGIN_NAME ".log"
 #define PLUGIN_CONFIG_PATH PLUGIN_DIR "config.json"
 #define DEFAULT_DATABASE_PATH PLUGIN_DIR "leveldb/"
-//"FakePlayerDB/"
+
 // Switch
 #define ENABLE_LOG_FILE true
 #define ENABLE_CONFIG true
 
-#define VERBOSE
+//#define VERBOSE
 
 #if !defined(DEBUG) && defined(VERBOSE)
 #undef VERBOSE
@@ -58,6 +58,7 @@ inline std::string CommandAlias = "fp";
 inline unsigned int ChunkRadius = 9;
 inline bool DebugMode = false;
 inline std::string DataBasePath = DEFAULT_DATABASE_PATH;
+inline size_t DefaultMaxCooldownTicks = 10;
 
 bool saveConfig();
 bool initConfig();
