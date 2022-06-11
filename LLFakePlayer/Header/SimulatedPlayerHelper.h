@@ -58,10 +58,10 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
 
     if (player /* && player->isSimulated() */)
     {
-        auto unk = *dAccess<void (**)(), 8880>(player);
         player->postLoad(/* isNewPlayer */ false);
         Level& level = player->getLevel();
         level.addUser(std::move(ownerPtr));
+        //execute @a ~~~ tp ~~~
         if (bpos)
         {
             auto pos = bpos->bottomCenter();
@@ -69,9 +69,18 @@ inline SimulatedPlayer* create(std::string const& name, BlockPos* bpos = nullptr
             player->setPos(pos);
             player->setRespawnReady(pos);
             player->setSpawnBlockRespawnPosition(*bpos, dimId);
+            player->setLocalPlayerAsInitialized();
+            player->doInitialSpawn();
         }
-        player->setLocalPlayerAsInitialized();
-        player->doInitialSpawn();
+        else
+        {
+            auto pos = player->getPos();
+            player->setPos(pos);
+            player->setRespawnReady(pos);
+            player->setLocalPlayerAsInitialized();
+            player->doInitialSpawn();
+        }
+        auto pos3 = player->getPos();
     }
     return player;
 }

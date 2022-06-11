@@ -45,7 +45,7 @@ llfakeplayer import - Import data from ddf8196's FakePlayer Client
 #define ENABLE_LOG_FILE true
 #define ENABLE_CONFIG true
 
-#define VERBOSE
+//#define VERBOSE
 
 #if !defined(DEBUG) && defined(VERBOSE)
 #undef VERBOSE

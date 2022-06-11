@@ -173,6 +173,7 @@ public:
 
     inline void breakIfStateChanged()
     {
+        return;
         constexpr size_t off = sizeof(FakeSimulatedPlayer);
         // return;
 #define ListenAndLog(val)                                                             \
