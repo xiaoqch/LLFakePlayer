@@ -273,11 +273,6 @@ public:
             return waitRemove("Can't get navigation component");
         auto sp = getPlayer();
         auto maxDist = naviComp->getMaxDistance(*sp);
-        auto size = 0;
-        if (naviComp->mPath)
-            size += naviComp->mPath->mNodes.size();
-        if (naviComp->mNavigation)
-            size += naviComp->mNavigation->size();
         auto& pos = sp->getPosition();
         if (blockPosList.empty())
         {
