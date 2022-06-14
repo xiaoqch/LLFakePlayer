@@ -96,6 +96,12 @@
     <ClCompile Include="Main\FakeSimulatedPlayer.cpp">
       <Filter>Main</Filter>
     </ClCompile>
+    <ClCompile Include="Main\TaskSystem.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Command\TaskCommand.cpp">
+      <Filter>Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main\Config.h">
@@ -151,6 +157,12 @@
     </ClInclude>
     <ClInclude Include="Main\FakePlayer.h">
       <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\TaskSystem.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Command\TaskCommand.h">
+      <Filter>Command</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

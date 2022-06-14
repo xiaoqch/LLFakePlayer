@@ -11,6 +11,7 @@
 #include <MC/ServerNetworkHandler.hpp>
 #include <MC/SimulatedPlayer.hpp>
 #include <ScheduleAPI.h>
+#if true
 
 class DimensionStateSystem
 {
@@ -799,3 +800,5 @@ TInstanceHook(void, "?causeFallDamage@Actor@@UEAAXMMVActorDamageSource@@@Z",
 // }
 
 #endif // DEBUG
+
+#endif // false

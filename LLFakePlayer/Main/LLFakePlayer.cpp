@@ -2,6 +2,7 @@
 #include <EventAPI.h>
 #include "FakePlayerManager.h"
 #include "Command/FakePlayerCommand.h"
+#include "Command/TaskCommand.h"
 #include "Command/TickingCommand.h"
 #include "Utils/SkinHelper.h"
 #include <MC/NetworkIdentifier.hpp>
@@ -17,6 +18,7 @@ void entry()
         TickingCommand::setup(*ev.mCommandRegistry);
 #endif // PLUGIN_IS_BETA
         FakePlayerCommand::setup(*ev.mCommandRegistry);
+        TaskCommand::setup(*ev.mCommandRegistry);
         return true;
     });
     // ========== Test ==========

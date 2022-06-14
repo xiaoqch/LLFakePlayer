@@ -57,6 +57,7 @@ std::string serialize()
     SerializeVaule(DebugMode);
     SerializeVaule(DataBasePath);
     SerializeVaule(DefaultMaxCooldownTicks);
+    SerializeVaule(AutoSleep);
 
     return json.dump(4);
 }
@@ -71,6 +72,7 @@ bool deserialize(std::string const& jsonStr)
     DeserializeVaule(DebugMode);
     DeserializeVaule(DataBasePath);
     DeserializeVaule(DefaultMaxCooldownTicks);
+    DeserializeVaule(AutoSleep);
 
     return !needUpdate;
 }

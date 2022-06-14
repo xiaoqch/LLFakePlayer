@@ -142,7 +142,7 @@ enum class SimulatedMovingType
 };
 
 #endif // DEBUG
-
+#include <MC/NavigationComponent.hpp>
 class FakeSimulatedPlayer
 {
     FakeSimulatedPlayer() = delete;
@@ -207,7 +207,11 @@ public:
         ListenAndLog(mInputSpeed);
     }
 #endif // DEBUG
-
+    inline NavigationComponent const* getNavigationComponent() const
+    {
+        return SymCall("??$tryGetComponent@VNavigationComponent@@@Actor@@QEBAPEBVNavigationComponent@@XZ",
+                       NavigationComponent const*, const void*)(this);
+    }
     inline static FakeSimulatedPlayer* from(Player* player)
     {
         return reinterpret_cast<FakeSimulatedPlayer*>(player);
@@ -216,7 +220,23 @@ public:
     {
         return reinterpret_cast<FakeSimulatedPlayer&>(player);
     }
+    inline SimulatedPlayer& to()
+    {
+        return *reinterpret_cast<SimulatedPlayer*>(player);
+    }
 };
+
+template<>
+struct std::hash<ActorUniqueID>
+{
+    size_t operator()(ActorUniqueID const& id) const
+    {
+        return id.id;
+    }
+};
+
+#include <MC/CommandUtils.hpp>
+#include <MC/BlockSource.hpp>
 
 void tickFakeSimulatedPlayer(SimulatedPlayer& sp)
 {
@@ -228,8 +248,8 @@ void tickFakeSimulatedPlayer(SimulatedPlayer& sp)
     auto currentServerTick = Global<Level>->getCurrentServerTick();
     if (currentServerTick + Config::DefaultMaxCooldownTicks < fsp.mLastCooldownTick)
         fsp.mLastCooldownTick = currentServerTick + Config::DefaultMaxCooldownTicks;
-}
 
+}
 
 static_assert(sizeof(FakeSimulatedPlayer) == SimulatedPlayerSize);
 static_assert(offsetof(FakeSimulatedPlayer, mIsLocalMoving) == ServerPlayerSize + 0);
@@ -252,3 +272,4 @@ static_assert(offsetof(FakeSimulatedPlayer, mLastCooldownTick) == ServerPlayerSi
 static_assert(offsetof(FakeSimulatedPlayer, mMovementSettings) == ServerPlayerSize + 136);
 static_assert(offsetof(FakeSimulatedPlayer, mOldY) == ServerPlayerSize + 240);
 static_assert(offsetof(FakeSimulatedPlayer, mInputSpeed) == ServerPlayerSize + 244);
+

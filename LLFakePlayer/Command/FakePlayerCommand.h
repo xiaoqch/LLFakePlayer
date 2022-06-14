@@ -2,30 +2,30 @@
 
 class SimulatedPlayer;
 
-//#define COMMAND_AS_SUB_COMMAND
 extern void UpdateLLFakePlayerSoftEnum();
 
 class FakePlayerCommand : public Command
 {
-    static std::vector<std::string> mList;
-    std::string name;
-    enum class Operation
+    std::string mName;
+    enum class Action
     {
         Help,
         List,
-        Create,
+        Add,
         Remove,
         Login,
         Logout,
-#ifdef COMMAND_AS_SUB_COMMAND
+#ifdef COMMAND_AS_ACTION
         As,
-#endif // COMMAND_AS_SUB_COMMAND
+#endif // COMMAND_AS_ACTION
         Import,
-    } operation;
-    CommandPosition commandPos;
-    int dimensionId;
+    } mAction;
+    CommandPosition mPosition;
+    int mDimensionId;
     bool name_isSet, commandPos_isSet, dimensionId_isSet;
-
+    template <Action op>
+    void executeAction(class CommandOrigin const& origin, class CommandOutput& output) const = delete;
+    
     virtual void execute(class CommandOrigin const& origin, class CommandOutput& output) const override;
 
 public:

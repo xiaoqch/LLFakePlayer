@@ -176,6 +176,7 @@ LibraryBuilder.exe -o ..\Lib\
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level1</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level1</WarningLevel>
     </ClCompile>
+    <ClCompile Include="Command\TaskCommand.cpp" />
     <ClCompile Include="Main\FakePlayer.cpp" />
     <ClCompile Include="Main\FakePlayerAPI.cpp" />
     <ClCompile Include="Main\Config.cpp" />
@@ -187,6 +188,7 @@ LibraryBuilder.exe -o ..\Lib\
     <ClCompile Include="Main\LLFakePlayer.cpp" />
     <ClCompile Include="Main\FakeClient.cpp" />
     <ClCompile Include="Main\SimulatedPlayerHelper.cpp" />
+    <ClCompile Include="Main\TaskSystem.cpp" />
     <ClCompile Include="Other\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -199,6 +201,7 @@ LibraryBuilder.exe -o ..\Lib\
   <ItemGroup>
     <ClInclude Include="..\lodepng\lodepng.h" />
     <ClInclude Include="Command\CommandHelper.h" />
+    <ClInclude Include="Command\TaskCommand.h" />
     <ClInclude Include="Header\FakePlayerAPI.h" />
     <ClInclude Include="Header\FakePlayerManager.h" />
     <ClInclude Include="Header\SimulatedPlayerHelper.h" />
@@ -206,6 +209,7 @@ LibraryBuilder.exe -o ..\Lib\
     <ClInclude Include="Command\FakePlayerCommand.h" />
     <ClInclude Include="Main\FakePlayer.h" />
     <ClInclude Include="Main\FakePlayerStorage.h" />
+    <ClInclude Include="Main\TaskSystem.h" />
     <ClInclude Include="Other\framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource\resource.h" />

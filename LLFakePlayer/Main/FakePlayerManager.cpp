@@ -121,7 +121,7 @@ bool FakePlayerManager::saveData(SimulatedPlayer const& simulatedPlayer)
     return false;
 }
 
-bool FakePlayerManager::importClientFakePlayerData(std::string const& name)
+std::string FakePlayerManager::importClientFakePlayerData(std::string const& name)
 {
     auto uuid = JAVA::nameUUIDFromBytes(name);
     auto suuid = uuid.asString();
@@ -129,21 +129,18 @@ bool FakePlayerManager::importClientFakePlayerData(std::string const& name)
     auto tag = dbStorage->getCompoundTag("player_" + uuid.asString(), (DBHelpers::Category)7);
     if (!tag)
     {
-        logger.error("Error in getting PlayerStorageIds");
-        return false;
+        return "Error in getting PlayerStorageIds";
     }
     auto& serverId = tag->getString("ServerId");
     if (serverId.empty())
     {
-        logger.error("Error in getting player's ServerId");
-        return false;
+        return "Error in getting player's ServerId";
     }
     auto playerData = dbStorage->getCompoundTag(serverId, (DBHelpers::Category)7);
     auto fp = create(name, std::move(playerData));
-    if (fp)
-        return true;
-    logger.error("Error in creating FakePlayer");
-    return false;
+    if (!fp)
+        return "Error in creating FakePlayer";
+    return "";
 }
 
 void FakePlayerManager::initFakePlayers()

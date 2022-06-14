@@ -12,7 +12,7 @@
 
 
 #define ExportRemoteCallApi(name) RemoteCall::exportAs<decltype(FakePlayerAPI::name)>(LLFAKEPLAYER_NAMESPACE, #name, FakePlayerAPI::name)
-#define ExportRemoteCallApiAs(name, func) RemoteCall::exportAs<func>(LLFAKEPLAYER_NAMESPACE, #name, (func)&FakePlayerAPI::name)
+#define ExportRemoteCallApiAs(name) RemoteCall::exportAs<decltype(*name)>(LLFAKEPLAYER_NAMESPACE, #name, *name)
 
 namespace FakePlayerAPI
 {
@@ -126,16 +126,23 @@ bool createWithData(std::string const& name, CompoundTag* data)
     DEBUGL(__FUNCTION__);
     return FakePlayerManager::getManager().create(name, data->clone());
 }
-SimulatedPlayer* createAt(std::string const& name, BlockPos pos, int dimid)
+
+SimulatedPlayer* createAt(std::string const& name, std::pair<BlockPos, int> pos)
 {
     DEBUGL(__FUNCTION__);
     auto fp = FakePlayerManager::getManager().create(name);
-    if (fp && fp->login(&pos, dimid))
+    if (fp && fp->login(&pos.first, pos.second))
     {
         return fp->getPlayer();
     }
     return nullptr;
 }
+
+SimulatedPlayer* createAt(std::string const& name, int x, int y, int z, int dimid)
+{
+    return createAt(name, {BlockPos(x, y, z), dimid});
+}
+
 bool remove(std::string const& name)
 {
     DEBUGL(__FUNCTION__);
@@ -179,7 +186,7 @@ std::vector<std::string> removeAll()
 bool importClientFakePlayer(std::string const& name)
 {
     DEBUGL(__FUNCTION__);
-    return FakePlayerManager::getManager().importClientFakePlayerData(name);
+    return FakePlayerManager::getManager().importClientFakePlayerData(name).empty();
 }
 
 size_t subscribeEvent(std::function<void(Event&)> const& handler)
@@ -207,7 +214,6 @@ bool remoteCallSubscribe(std::string const& callbackNamespace, std::string const
     return true;
 }
 
-
 } // namespace FakePlayerAPI
 
 bool ExportRemoteCallApis()
@@ -222,7 +228,8 @@ bool ExportRemoteCallApis()
     res = res && ExportRemoteCallApi(login);
     res = res && ExportRemoteCallApi(logout);
     res = res && ExportRemoteCallApi(create);
-    res = res && ExportRemoteCallApi(createAt);
+    SimulatedPlayer* (*createAt)(std::string const&, std::pair<BlockPos, int>) = FakePlayerAPI::createAt;
+    res = res && ExportRemoteCallApiAs(createAt);
     res = res && ExportRemoteCallApi(createWithData);
     res = res && ExportRemoteCallApi(remove);
     res = res && ExportRemoteCallApi(loginAll);

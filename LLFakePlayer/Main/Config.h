@@ -25,6 +25,7 @@ extern Logger logger;
 #define PLUGIN_WEBSIDE GITHUB_LINK PLUGIN_NAME
 #define PLUGIN_LICENCE "GPLv3"
 #define PLUGIN_USAGE R"(
+LLFakePlayer Command(default alias "fp"):
 llfakeplayer help - Show this message
 llfakeplayer create - Create new fake player
 llfakeplayer remove - Remove a fake player forever
@@ -32,6 +33,14 @@ llfakeplayer list - List all fake player
 llfakeplayer login - Login a existing fake player
 llfakeplayer logout - Logout a existing fake player
 llfakeplayer import - Import data from ddf8196's FakePlayer Client
+
+LLFakePlayerTask Command(default alias "fpt"):
+llfakeplayertask sp follow [target]- add/remove follow task
+llfakeplayertask sp sleep - add/remove sleep task
+...
+llfakeplayertask sp custom name [json] - add/remove custom name task
+llfakeplayertask sp cancel name - cancel task
+
 )"
 
 
@@ -55,10 +64,12 @@ llfakeplayer import - Import data from ddf8196's FakePlayer Client
 namespace Config
 {
 inline std::string CommandAlias = "fp";
+inline std::string TaskCommandAlias = "fpt";
 inline unsigned int ChunkRadius = 9;
 inline bool DebugMode = false;
 inline std::string DataBasePath = DEFAULT_DATABASE_PATH;
 inline size_t DefaultMaxCooldownTicks = 10;
+inline bool AutoSleep = true;
 
 bool saveConfig();
 bool initConfig();

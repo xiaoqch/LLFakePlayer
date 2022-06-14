@@ -24,6 +24,9 @@ std::pair<std::string, int> genTickingInfo(BlockSource const& region, BlockPos c
     static std::string inRegionLabel = "Ｏ";
     static std::string outofRegionLabel = "＋";
     static std::string unloadedLabel = ColorHelper::dark_gray("－");
+    auto labels = fmt::format("player: {}, ticking: {}, In Region: {}, Out Of Region: {}, Unloaded: {}",
+                centerLabel, tickingLabel, inRegionLabel, outofRegionLabel, unloadedLabel);
+    logger.info(ColorFormat::convertToColsole(labels));
     std::ostringstream loadInfo;
     std::set<__int64> playerChunkHashs;
     for (auto player : Level::getAllPlayers())
@@ -102,9 +105,9 @@ bool processCommand(class CommandOrigin const& origin, class CommandOutput& outp
 void TickingCommand::execute(class CommandOrigin const& origin, class CommandOutput& output) const
 {
     Actor* actor;
-    if (selector_isSet)
+    if (mTarget_isSet)
     {
-        auto result = selector.results(origin);
+        auto result = mTarget.results(origin);
         if (result.empty())
         {
             output.error(KEY_NO_TARGET);
@@ -117,18 +120,18 @@ void TickingCommand::execute(class CommandOrigin const& origin, class CommandOut
         }
         actor = *result.begin();
     }
-    else if (commandPos_isSet)
+    else if (mPosition_isSet)
     {
-        auto bpos = commandPos.getBlockPos(origin, Vec3::ZERO);
+        auto bpos = mPosition.getBlockPos(origin, Vec3::ZERO);
         auto dim = origin.getDimension();
-        if (dimensionId_isSet)
+        if (mDimensionId_isSet)
         {
-            dim = Global<Level>->getDimension(dimensionId);
+            dim = Global<Level>->getDimension(mDimensionId);
         }
         if (!dim)
             return output.error("Error in get Dimension");
 
-        if (!processCommand(origin, output, dim->getBlockSourceFromMainChunkSource(), bpos, range_isSet ? range : 10))
+        if (!processCommand(origin, output, dim->getBlockSourceFromMainChunkSource(), bpos, mRange_isSet ? mRange : 10))
             return output.error("Error when executing command \"ticking\"");
         return;
     }
@@ -144,7 +147,7 @@ void TickingCommand::execute(class CommandOrigin const& origin, class CommandOut
             return;
         }
     }
-    if (!processCommand(origin, output, actor, range_isSet ? range : 10))
+    if (!processCommand(origin, output, actor, mRange_isSet ? mRange : 10))
         output.error("Error when executing command \"ticking\"");
 }
 
@@ -153,18 +156,18 @@ void TickingCommand::setup(CommandRegistry& registry)
     registry.registerCommand("ticking", "Show Ticking chunks", CommandPermissionLevel::Any, {(CommandFlagValue)0}, {(CommandFlagValue)0x80});
     registry.registerOverload<TickingCommand>(
         "ticking",
-        makeOptional(&TickingCommand::selector, "target", &TickingCommand::selector_isSet),
-        makeOptional(&TickingCommand::range, "range", &TickingCommand::range_isSet));
+        makeOptional(&TickingCommand::mTarget, "target", &TickingCommand::mTarget_isSet),
+        makeOptional(&TickingCommand::mRange, "range", &TickingCommand::mRange_isSet));
 
     registry.registerOverload<TickingCommand>(
         "ticking",
-        makeMandatory(&TickingCommand::range, "range", &TickingCommand::range_isSet));
+        makeMandatory(&TickingCommand::mRange, "range", &TickingCommand::mRange_isSet));
 
     registry.registerOverload<TickingCommand>(
         "ticking",
-        makeMandatory(&TickingCommand::commandPos, "coord", &TickingCommand::commandPos_isSet),
-        makeOptional(&TickingCommand::dimensionId, "dimid", &TickingCommand::dimensionId_isSet),
-        makeOptional(&TickingCommand::range, "range", &TickingCommand::range_isSet));
+        makeMandatory(&TickingCommand::mPosition, "coord", &TickingCommand::mPosition_isSet),
+        makeOptional(&TickingCommand::mDimensionId, "dimid", &TickingCommand::mDimensionId_isSet),
+        makeOptional(&TickingCommand::mRange, "range", &TickingCommand::mRange_isSet));
 }
 
 #endif // PLUGIN_IS_BETA

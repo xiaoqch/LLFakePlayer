@@ -4,14 +4,14 @@
 
 class TickingCommand : public Command
 {
-    CommandSelector<Player> selector;
-    CommandPosition commandPos;
-    int dimensionId;
-    int range;
-    bool selector_isSet;
-    bool commandPos_isSet;
-    bool dimensionId_isSet;
-    bool range_isSet;
+    CommandSelector<Player> mTarget;
+    CommandPosition mPosition;
+    int mDimensionId;
+    int mRange;
+    bool mTarget_isSet;
+    bool mPosition_isSet;
+    bool mDimensionId_isSet;
+    bool mRange_isSet;
 
     virtual void execute(class CommandOrigin const& origin, class CommandOutput& output) const override;
 

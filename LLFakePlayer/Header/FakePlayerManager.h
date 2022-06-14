@@ -124,7 +124,7 @@ public:
     FPAPI bool saveData(mce::UUID uuid);
     FPAPI bool saveData(FakePlayer const& fakePlayer);
     FPAPI bool saveData(SimulatedPlayer const& simulatedPlayer);
-    FPAPI bool importClientFakePlayerData(std::string const& name);
+    FPAPI std::string importClientFakePlayerData(std::string const& name);
     friend class FakePlayer;
     friend class SimulatedPlayer;
 
