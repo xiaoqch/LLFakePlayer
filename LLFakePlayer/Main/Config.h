@@ -32,6 +32,7 @@ llfakeplayer remove - Remove a fake player forever
 llfakeplayer list - List all fake player
 llfakeplayer login - Login a existing fake player
 llfakeplayer logout - Logout a existing fake player
+llfakeplayer autologin - Set/Cancel fake player auto login
 llfakeplayer import - Import data from ddf8196's FakePlayer Client
 
 LLFakePlayerTask Command(default alias "fpt"):

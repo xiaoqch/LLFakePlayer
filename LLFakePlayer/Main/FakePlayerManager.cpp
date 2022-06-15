@@ -90,7 +90,7 @@ bool FakePlayerManager::savePlayers(bool onlineOnly)
     auto res = true;
     for (auto& [uuid, player] : mMap)
     {
-        if (player->isOnline() && !saveData(*player))
+        if ((!onlineOnly || player->isOnline()) && !saveData(*player))
             res = false;
     }
     return res;
@@ -164,13 +164,13 @@ void FakePlayerManager::initFakePlayers()
 }
 void FakePlayerManager::initEventListeners()
 {
-    Schedule::nextTick([]() {
+    Schedule::delay([]() {
         auto& manager = getManager();
         for (auto& fp : manager.getFakePlayerList()) {
             if (fp->isAutoLogin())
                 fp->login();
         }
-    });
+    },100);
     Event::PlayerJoinEvent::subscribe_ref([](Event::PlayerJoinEvent& ev) {
         auto& player = ev.mPlayer;
         auto& manager = FakePlayerManager::getManager();
@@ -392,3 +392,12 @@ TInstanceHook(void, "?savePlayers@Level@@UEAAXXZ", Level)
         logger.error("Error in FakePlayer::savePlayers");
     }
 }
+
+#include <MC/DedicatedServer.hpp>
+TInstanceHook(bool, "?stop@DedicatedServer@@UEAA_NXZ",
+              DedicatedServer)
+{
+    FakePlayerManager::getManager().savePlayers(false);
+    return original(this);
+}
+

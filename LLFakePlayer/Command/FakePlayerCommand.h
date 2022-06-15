@@ -15,6 +15,7 @@ class FakePlayerCommand : public Command
         Remove,
         Login,
         Logout,
+        AutoLogin,
 #ifdef COMMAND_AS_ACTION
         As,
 #endif // COMMAND_AS_ACTION
@@ -22,7 +23,8 @@ class FakePlayerCommand : public Command
     } mAction;
     CommandPosition mPosition;
     int mDimensionId;
-    bool name_isSet, commandPos_isSet, dimensionId_isSet;
+    bool mAutoLogin = false;
+    bool mName_isSet, mPosition_isSet, mDimensionId_isSet, mAutoLogin_isSet;
     template <Action op>
     void executeAction(class CommandOrigin const& origin, class CommandOutput& output) const = delete;
     

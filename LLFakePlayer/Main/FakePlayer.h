@@ -68,6 +68,10 @@ public:
     {
         return mAutoLogin;
     }
+    inline void setAutoLogin(bool value)
+    {
+        mAutoLogin = value;
+    }
     inline bool isOnline() const
     {
         return getPlayer() != nullptr;
