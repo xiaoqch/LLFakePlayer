@@ -270,9 +270,9 @@ bool ExportRemoteCallApis()
 
 #ifdef DEBUG
     auto list = ImportFakePlayerAPI(list);
-    TestFuncTime(list);
-    TestFuncTime(list);
-    TestFuncTime(list);
+    //TestFuncTime(list);
+    //TestFuncTime(list);
+    //TestFuncTime(list);
     auto test = ImportFakePlayerAPI(getVersionString);
     using Type = decltype(FakePlayerAPI::getVersionString);
     auto test2 = RemoteCall::importAs<decltype(FakePlayerAPI::getVersionString)>("FakePlayerAPI", "getVersionString");

@@ -170,7 +170,7 @@ void FakePlayerManager::initEventListeners()
             if (fp->isAutoLogin())
                 fp->login();
         }
-    },100);
+    },50);
     Event::PlayerJoinEvent::subscribe_ref([](Event::PlayerJoinEvent& ev) {
         auto& player = ev.mPlayer;
         auto& manager = FakePlayerManager::getManager();

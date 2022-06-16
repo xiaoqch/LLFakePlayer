@@ -9,7 +9,12 @@
 #include <MC/BlockLegacy.hpp>
 #include <MC/Block.hpp>
 #include <MC/VanillaBlockTypes.hpp>
+#include <MC/FishingHook.hpp>
+#include <MC/SynchedActorData.hpp>
 #include <MC/VanillaBlockTypeIds.hpp>
+#include <MC/VanillaItemNames.hpp>
+#include <MC/VanillaItemTags.hpp>
+#include <MC/ItemRegistry.hpp>
 #include <EventAPI.h>
 #include <ScheduleAPI.h>
 
@@ -34,8 +39,8 @@ public:
     {
         Follow,
         Sleep,
+        Use,
         Custom,
-        Cancel,
     };
     using CallbackFn = std::function<void(Task&)>;
 
@@ -86,8 +91,10 @@ public:
         return SymCall("??$tryGetComponent@VNavigationComponent@@@Actor@@QEBAPEBVNavigationComponent@@XZ",
                        NavigationComponent const*, Actor*)(getPlayer());
     }
+    virtual void start(){};
     virtual void tick() = 0;
     virtual Type getType() const = 0;
+    virtual void stop(){};
     virtual void onPlayerChangeDimension(class Player*, class AutomaticID<class Dimension, int>){};
     virtual std::string toString() const
     {
@@ -136,7 +143,10 @@ public:
         if (!__super::canUse())
             return false;
         if (!getTarget())
+        {
+            waitRemove("Target not found.");
             return false;
+        }
         return true;
     }
     virtual void tick() override
@@ -173,7 +183,7 @@ public:
         if (start.distanceToSqr(end) < maxDist * 0.25 * maxDist * 0.25)
             return;
         // LOG_VAR(maxDist);
-        // auto _result = sp.simulateNavigateToEntity(target, 99.0f);
+        // auto _result = sp.simulateNavigateToEntity(target, 1.f);
         // if (!_result.mPath.empty())
         //{
         //      sendMessage("{} move to {}", CommandUtils::getActorName(sp), _result.mPath.back().toString());
@@ -189,13 +199,12 @@ public:
             nextPos.y = region.getHeightmap(nextPos);
         }
         sp.setSprinting(!canToTarget);
-        auto result = sp.simulateNavigateToLocation(nextPos, 99.0f);
+        auto result = sp.simulateNavigateToLocation(nextPos, 1.f);
         if (!result.mPath.empty())
         {
 #ifdef DEBUG
-            sendMessage("{} move to {}", CommandUtils::getActorName(sp), result.mPath.back().toString());
+            DEBUGL("{} move to {}", CommandUtils::getActorName(sp), result.mPath.back().toString());
 #endif // DEBUG
-
             return;
         }
         waitRemove("{} can not reach {}, stop following", CommandUtils::getActorName(sp), CommandUtils::getActorName(target));
@@ -250,10 +259,468 @@ class CraftTask : public Task
 {
 };
 
+#include <MC/Container.hpp>
+#include <MC/ItemStack.hpp>
+#include <MC/HitResult.hpp>
+#include <MC/Item.hpp>
+
+inline HitResult getBlockFromViewVectorEx(Actor& actor)
+{
+    float maxDistance = 5.25f;
+    auto& bs = actor.getRegion();
+    auto pos = actor.getCameraPos();
+    auto viewVec = actor.getViewVector(1.0f);
+    auto viewPos = pos + (viewVec * maxDistance);
+    auto player = actor.isPlayer() ? (Player*)&actor : nullptr;
+    int maxDisManhattan = (int)((maxDistance + 1) * 2);
+    return bs.clip(pos, viewPos, true, false, maxDisManhattan, true, false, nullptr, BlockSource::ClipParameters::CHECK_ALL_BLOCKS);
+}
+
+class SyncHelper
+{
+    enum class State : unsigned char
+    {
+        Starting,
+        Navigating,
+        WaitMove,
+        Moving,
+        Looking,
+        Stopped,
+    };
+
+    State mState = State::Starting;
+    bool mNeedSyncPos = false;
+    bool mNeedSyncView = false;
+    bool mNeedSneak = false;
+    Vec3 mStandingPos = Vec3::MIN;
+    Vec3 mViewVector = Vec3::MIN;
+    Vec3 mLastVec = Vec3::MIN;
+    bool mHasError = false;
+    std::string mErrorMessage = "";
+    int mSleepingTicks = 0;
+
+    template<typename ...Args>
+    inline bool waitRemove(std::string const& format = "", Args&&... args)
+    {
+        if constexpr (sizeof...(args) > 0)
+            mErrorMessage = fmt::format(format, std::forward<Args>(args)...);
+        else
+            mErrorMessage = format;
+        mHasError = true;
+        return false;
+    }
+
+    inline NavigationComponent const* getNavigationComponent(SimulatedPlayer& sp) const
+    {
+        return SymCall("??$tryGetComponent@VNavigationComponent@@@Actor@@QEBAPEBVNavigationComponent@@XZ",
+                       NavigationComponent const*, Actor&)(sp);
+    }
+
+public:
+    bool needSync()
+    {
+        return mNeedSyncPos && mNeedSyncView;
+    }
+    bool hasError()
+    {
+        return mHasError;
+    }
+    std::string const& getErrorMessage()
+    {
+        return mErrorMessage;
+    }
+    bool syncTick(SimulatedPlayer& sp)
+    {
+        if (mSleepingTicks)
+        {
+            --mSleepingTicks;
+            return false;
+        }
+        switch (mState)
+        {
+            case SyncHelper::State::Starting:
+                if (mNeedSyncPos)
+                {
+                    auto naviComp = getNavigationComponent(sp);
+                    if (!naviComp)
+                        return waitRemove("Can't get navigation component");
+                    auto start = sp.getPosition();
+                    auto end = mStandingPos;
+                    auto maxDist = naviComp->getMaxDistance(sp);
+                    auto result = sp.simulateNavigateToLocation(end, 1.f);
+                    if (!result.mPath.empty())
+                    {
+                        DEBUGL("{} move to {}", CommandUtils::getActorName(sp), result.mPath.back().toString());
+                        mState = State::Navigating;
+                        return false;
+                    }
+                    else
+                        return waitRemove("{} can not navigate to {}, stop syncing",
+                                          CommandUtils::getActorName(sp), mStandingPos.toString());
+                    return false;
+                }
+                else if (mNeedSyncView)
+                {
+                    auto& pos = sp.getPosition();
+                    sp.simulateLookAt(pos + (mViewVector * 1024));
+                    mLastVec = Vec3::MIN;
+                    mState = State::Looking;
+                    return false;
+                }
+                else
+                {
+                    mState = State::Stopped;
+                    return true;
+                }
+                break;
+            case SyncHelper::State::Navigating:
+            {
+
+                auto naviComp = getNavigationComponent(sp);
+                if (!naviComp)
+                    return waitRemove("Can't get navigation component");
+                if (!naviComp->isDone() && !naviComp->isStuck(100))
+                    return false;
+                else
+                    DEBUGL("{}: done: {}, stuck: {}",
+                           CommandUtils::getActorName(sp), naviComp->isDone(), naviComp->isStuck(100));
+                auto feetPos = CommandUtils::getFeetPos(&sp);
+                DEBUGW("navigating stop, distance: {}", feetPos.distanceTo(mStandingPos));
+                if (feetPos.distanceToSqr(mStandingPos) < 2.0f)
+                {
+                    sp.simulateStopMoving();
+                    mState = State::WaitMove;
+                    mSleepingTicks = 5;
+                    return false;
+                }
+                else
+                    return waitRemove("{} is too far from {}, stop syncing",
+                                      CommandUtils::getActorName(sp), mStandingPos.toString());
+                break;
+            }
+            case SyncHelper::State::WaitMove:
+                DEBUGL("{} start move to {}, speed: {}", CommandUtils::getActorName(sp), mViewVector.toString(), sp.getSpeed());
+                sp.simulateMoveToLocation(mStandingPos + Vec3{0.f, 1.6f, 0.f}, .01f);
+                mLastVec = sp.getPos();
+                mState = State::Moving;
+                return false;
+                break;
+            case SyncHelper::State::Moving:
+            {
+
+                auto& pos = sp.getPosition();
+                if (mLastVec != pos)
+                {
+                    mLastVec = pos;
+                    return false;
+                }
+                auto feetPos = CommandUtils::getFeetPos(&sp);
+
+                DEBUGW("moving stop, distance: {}", feetPos.distanceTo(mStandingPos));
+                if (feetPos.distanceToSqr(mStandingPos) < 1)
+                {
+                    sp.simulateStopSneaking();
+                    sp.simulateStopMoving();
+                    if (mNeedSyncView)
+                    {
+                        mState = State::Looking;
+                        sp.simulateLookAt(pos + (mViewVector * 1024));
+                        mLastVec = Vec3::MIN;
+                        return false;
+                    }
+                    mState = State::Stopped;
+                    return true;
+                }
+                if (feetPos.y < mStandingPos.y)
+                {
+                    sp.simulateJump();
+                    return false;
+                }
+                //sp.simulateMoveToLocation(mStandingPos, .01f);
+                //return false;
+                return waitRemove("{} can't move to {}, stop syncing",
+                                  CommandUtils::getActorName(sp), mStandingPos.toString());
+                break;
+            }
+            case SyncHelper::State::Looking:
+            {
+                auto viewVector = sp.getViewVector(1.f);
+                if (mLastVec != viewVector)
+                {
+                    mLastVec = viewVector;
+                    return false;
+                }
+                if (viewVector.dot(mViewVector) > 0.9f)
+                {
+                    mState = State::Stopped;
+                    DEBUGW("{} look at {}", CommandUtils::getActorName(sp), mViewVector.toString());
+                    return true;
+                }
+                else
+                    return waitRemove("{} is not looking at {}, stop syncing", CommandUtils::getActorName(sp), mViewVector.toString());
+                break;
+            }
+            case SyncHelper::State::Stopped:
+                return true;
+                break;
+            default:
+                break;
+        }
+        __debugbreak();
+    }
+    bool updateTarget(Actor& actor)
+    {
+        if (mNeedSyncPos)
+            mStandingPos = CommandUtils::getFeetPos(&actor);
+        if (mNeedSyncView) {
+            mViewVector = actor.getViewVector(.1f);
+            mNeedSneak = actor.isSneaking();
+        }
+        return true;
+    }
+    SyncHelper(Actor& actor, bool syncPos = true, bool syncView = true)
+        : mNeedSyncPos(syncPos)
+        , mNeedSyncView(syncView)
+    {
+        updateTarget(actor);
+    }
+    SyncHelper(){};
+};
+
+class UseTask : public Task
+{
+    bool mNeedSync = true;
+    SyncHelper mSyncHelper;
+    std::set<HashedString> mItemNames;
+    std::set<int> mSlots;
+    int mWaitUseingDuration = 0;
+    int mCooldown = static_cast<int>(std::min(Config::DefaultMaxCooldownTicks, 10ull));
+    int mSleepingTicks = 0;
+    size_t mUseTimes = 0;
+    float mLastFishingAngle= 0.0f;
+    virtual Type getType() const override
+    {
+        return Type::Use;
+    }
+    virtual bool canUse() override
+    {
+        if (!__super::canUse())
+            return false;
+        if (mItemNames.empty())
+        {
+            waitRemove("No item to use");
+            return false;
+        }
+        return true;
+    }
+    virtual void tick() override
+    {
+        if (mSleepingTicks) {
+            mSleepingTicks--;
+            return;
+        }
+        auto& sp = *getPlayer();
+        if (mNeedSync)
+        {
+            mNeedSync = !mSyncHelper.syncTick(sp);
+            if (mSyncHelper.hasError())
+                return waitRemove(mSyncHelper.getErrorMessage());
+            return;
+        }
+        DEBUGL("isUsingItem: {}", sp.isUsingItem());
+        if (mWaitUseingDuration)
+        {
+            DEBUGW("using: {}/{}", sp.getItemUseDuration(), mWaitUseingDuration);
+            if (mWaitUseingDuration == 72000) {
+                if (mWaitUseingDuration - sp.getItemUseDuration() > 20) {
+                    sp.releaseUsingItem();
+                    mWaitUseingDuration = 0;
+                    return;
+                }
+            }
+            else if (sp.getItemUseDuration() == 0)
+            {
+                sp.simulateStopUsingItem();
+                mWaitUseingDuration = 0;
+                DEBUGL("{} stop using", CommandUtils::getActorName(sp));
+            }
+            return;
+        }
+        auto& inventory = sp.getInventory();
+        if (mSlots.empty())
+        {
+            for (int i = 0; i < inventory.getContainerSize(); i++)
+            {
+                auto& item = inventory.getItem(i);
+                if (item.isNull())
+                    continue;
+                auto name = item.getTypeName();
+                if (mItemNames.find(name) != mItemNames.end())
+                    mSlots.insert(i);
+            }
+            if (mSlots.empty())
+                return waitRemove("{} has no item to use, used times: {}",
+                    CommandUtils::getActorName(sp), mUseTimes);
+        }
+        auto slot = *mSlots.begin();
+        auto& item = inventory.getItem(slot);
+        if (item.isNull() || mItemNames.find(item.getTypeName()) == mItemNames.end())
+        {
+            mSlots.erase(slot);
+            return;
+        }
+        if (item.getFullNameHash() == VanillaItemNames::FishingRod)
+        {
+            return tickFishing(sp, slot);
+        }
+        bool res;
+        mWaitUseingDuration = item.getMaxUseDuration();
+        if (item.getItem()->isUseable() || mWaitUseingDuration)
+        {
+            DEBUGL("{} is usable", item.getName());
+            res = sp.simulateUseItemInSlot(slot);
+        }
+        else
+        {
+            DEBUGL("{} is unusable", item.getName());
+            auto hitResult = getBlockFromViewVectorEx(sp);
+            if (hitResult.isHit()||hitResult.isHitLiquid()) {
+                res = sp.simulateUseItemInSlotOnBlock(slot, hitResult.getLiquidPos(), (ScriptFacing)hitResult.getFacing(), dAccess<Vec3>(&hitResult, 96));
+                DEBUGL("Use on liquid: {}", res);
+                res = res || sp.simulateUseItemInSlotOnBlock(slot, hitResult.getBlockPos(), (ScriptFacing)hitResult.getFacing(), hitResult.getPos());
+            }
+            else
+            {
+                return waitRemove("{} can not use {}, used times: {}",
+                    CommandUtils::getActorName(sp), item.getName(), mUseTimes);
+            }
+        }
+        DEBUGL("{} use item in slot {}, result: {}, duration: {}, used times: {}",
+               CommandUtils::getActorName(sp), slot, res, mWaitUseingDuration, mUseTimes);
+        if (res)
+        {
+            mUseTimes++;
+            mSleepingTicks = mCooldown;
+        }
+        else
+        {
+            return waitRemove("Can't use item, used times: {}", mUseTimes);
+        }
+
+    }
+    virtual void stop()
+    {
+        auto sp = getPlayer();
+        if (sp)
+        {
+            sp->simulateStopUsingItem();
+            sp->simulateStopMoving();
+        }
+    }
+    
+    void tickFishing(SimulatedPlayer& sp, int slot)
+    {
+        DEBUGL("Using fishing rod");
+        auto res = false;
+        if (sp.hasFishingHook())
+        {
+            auto hook = sp.fetchFishingHook();
+            if (!hook)
+                return;
+            auto targetId = hook->getTargetId();
+            if (targetId != 0 && targetId != -1)
+            {
+                res = sp.simulateUseItemInSlot(slot);
+            }
+            else if (hook->_getWaterPercentage() > 0.f)
+            {
+                auto fishAngle = hook->getEntityData().getFloat(ActorDataKeys::FISH_ANGLE);
+#ifdef DEBUG
+                auto unk1808 = dAccess<int>(hook, 1808); // left time
+                auto unk1812 = dAccess<int>(hook, 1812); // wait time
+                auto unk1816 = dAccess<int>(hook, 1816);
+                auto unk1820 = dAccess<int>(hook, 1820);
+                DEBUGL("{} fish angle: {}, unk1808: {}, unk1812: {}, unk1816: {}, unk1820: {}",
+                       CommandUtils::getActorName(sp), fishAngle, unk1808, unk1812, unk1816, unk1820);
+#endif // DEBUG=
+                if (fishAngle == mLastFishingAngle)
+                {
+                    if (fishAngle != 0.f)
+                    {
+                        // ASSERT(unk1808 <= 0 && unk1816 > 0);
+                        // fish is hooked
+                        res = sp.simulateUseItemInSlot(slot);
+                    }
+                    else
+                    {
+                        // wait for the fish to appear
+                        mSleepingTicks = 20;
+                        return;
+                    }
+                }
+                else
+                {
+                    // wait for the fish to take the bait
+                    mLastFishingAngle = fishAngle;
+                    mSleepingTicks = 5;
+                    return;
+                }
+            }
+            else if (!hook->isMoving())
+            {
+                res = sp.simulateUseItemInSlot(slot);
+            }
+            else
+            {
+                mSleepingTicks = 5;
+                return;
+            }
+        }
+        else
+        {
+            res = sp.simulateUseItemInSlot(slot);
+        }
+        if (res)
+        {
+            mUseTimes++;
+            mSleepingTicks = mCooldown;
+        }
+        else
+        {
+            return waitRemove("Can't use item, used times: {}", mUseTimes);
+        }
+        return;
+    }
+
+public:
+    UseTask(ActorUniqueID actorId, CallbackFn callback = nullptr, std::set<std::string> const& itemNames = {}, SyncHelper syncHelper = {})
+        : Task(actorId, callback)
+        , mSyncHelper(syncHelper)
+    {
+        for (auto& name : itemNames)
+        {
+            auto fullName = name.find(":") == std::string::npos ? "minecraft:" + name : name;
+            mItemNames.insert(fullName);
+        }
+        if (mItemNames.empty()) {
+            auto player = getPlayer();
+            if (player) {
+                auto& item = player->getSelectedItem();
+                if (!item.isNull()) {
+                    mItemNames.insert(item.getFullNameHash());
+                }
+            }
+        }
+        mNeedSync = syncHelper.needSync();
+    };
+};
+
 class NavigateTask : public Task
 {
 };
+
 enum BlockActorType;
+#include <Utils/PlayerMap.h>
 class SleepTask : public Task
 {
     std::vector<BlockPos> blockPosList;
@@ -347,7 +814,6 @@ public:
         : Task(actorId, std::move(callback)){};
 };
 
-
 class TaskSystem
 {
 public:
@@ -401,6 +867,7 @@ public:
         mTasks.erase(std::remove_if(mTasks.begin(), mTasks.end(), [](auto& task) {
                          if (!task->mWaitingRemoval)
                              return false;
+                         task->stop();
                          if (task->mCallback)
                              task->mCallback(*task);
                          return true;

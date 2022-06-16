@@ -9,6 +9,7 @@ public:
         List,
         Follow,
         Sleep,
+        Use,
         Custom,
         Cancel,
     };
@@ -20,7 +21,8 @@ private:
     std::string mTaskName;
     CommandPosition mPosition;
     Json::Value mJson;
-    bool mOperator_isSet, mTarget_isSet, mPosition_isSet, mJson_isSet;
+    bool mSync;
+    bool mOperator_isSet, mTarget_isSet, mPosition_isSet, mJson_isSet, mSync_isSet;
     template <Action op>
     void executeAction(class CommandOrigin const& origin, class CommandOutput& output, SimulatedPlayer& sp) const {
         output.error("Unimplemented");

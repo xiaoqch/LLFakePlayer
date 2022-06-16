@@ -245,9 +245,13 @@ void tickFakeSimulatedPlayer(SimulatedPlayer& sp)
     if (sp.getUserEntityIdentifierComponent()->isPrimaryClient())
         fsp.breakIfStateChanged();
 #endif // DEBUG
-    auto currentServerTick = Global<Level>->getCurrentServerTick();
-    if (currentServerTick + Config::DefaultMaxCooldownTicks < fsp.mLastCooldownTick)
-        fsp.mLastCooldownTick = currentServerTick + Config::DefaultMaxCooldownTicks;
+    static bool unlockCooldown = Config::DefaultMaxCooldownTicks < 10;
+    if (unlockCooldown)
+    {
+        auto currentServerTick = Global<Level>->getCurrentServerTick();
+        if (currentServerTick + Config::DefaultMaxCooldownTicks < fsp.mLastCooldownTick)
+            fsp.mLastCooldownTick = currentServerTick + Config::DefaultMaxCooldownTicks;
+    }
 
 }
 
