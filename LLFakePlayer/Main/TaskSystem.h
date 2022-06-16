@@ -573,7 +573,7 @@ class UseTask : public Task
         {
             return tickFishing(sp, slot);
         }
-        bool res;
+        bool res = false;
         mWaitUseingDuration = item.getMaxUseDuration();
         if (item.getItem()->isUseable() || mWaitUseingDuration)
         {
@@ -585,9 +585,11 @@ class UseTask : public Task
             DEBUGL("{} is unusable", item.getName());
             auto hitResult = getBlockFromViewVectorEx(sp);
             if (hitResult.isHit()||hitResult.isHitLiquid()) {
-                res = sp.simulateUseItemInSlotOnBlock(slot, hitResult.getLiquidPos(), (ScriptFacing)hitResult.getFacing(), dAccess<Vec3>(&hitResult, 96));
-                DEBUGL("Use on liquid: {}", res);
-                res = res || sp.simulateUseItemInSlotOnBlock(slot, hitResult.getBlockPos(), (ScriptFacing)hitResult.getFacing(), hitResult.getPos());
+                if (hitResult.isHitLiquid())
+                    res = sp.simulateUseItemInSlotOnBlock(slot, hitResult.getLiquidPos(), (ScriptFacing)hitResult.getFacing(), dAccess<Vec3>(&hitResult, 96));
+                if (hitResult.isHit())
+                    res = res || sp.simulateUseItemInSlotOnBlock(slot, hitResult.getBlockPos(), (ScriptFacing)hitResult.getFacing(), hitResult.getPos());
+                DEBUGL("hitResult: isLiquid: {}, isHit: {}, pos: {}, facing: {}, liquidPos: {}, blockPos: {}", hitResult.isHitLiquid(), hitResult.isHit(), hitResult.getPos().toString(), hitResult.getFacing(), hitResult.getLiquidPos().toString(), hitResult.getBlockPos().toString());
             }
             else
             {
@@ -621,7 +623,7 @@ class UseTask : public Task
     void tickFishing(SimulatedPlayer& sp, int slot)
     {
         DEBUGL("Using fishing rod");
-        auto res = false;
+        bool res = false;
         if (sp.hasFishingHook())
         {
             auto hook = sp.fetchFishingHook();
