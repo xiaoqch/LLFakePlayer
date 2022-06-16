@@ -498,6 +498,7 @@ class UseTask : public Task
     int mSleepingTicks = 0;
     size_t mUseTimes = 0;
     float mLastFishingAngle= 0.0f;
+
     virtual Type getType() const override
     {
         return Type::Use;
@@ -564,7 +565,7 @@ class UseTask : public Task
         }
         auto slot = *mSlots.begin();
         auto& item = inventory.getItem(slot);
-        if (item.isNull() || mItemNames.find(item.getTypeName()) == mItemNames.end())
+        if (item.isNull() || mItemNames.find(item.getFullNameHash()) == mItemNames.end())
         {
             mSlots.erase(slot);
             return;
