@@ -189,11 +189,12 @@ void TaskCommand::execute(CommandOrigin const& origin, CommandOutput& output) co
             CaseAndBreak(Follow);
             CaseAndBreak(Sleep);
             CaseAndBreak(Use);
+            CaseAndBreak(Sync);
             CaseAndBreak(Custom);
             CaseAndBreak(Cancel);
             default:
                 DEBUGBREAK();
-                output.error("Unknown action");
+                output.errorf("Unknown action {}({})", magic_enum::enum_name(mAction), static_cast<int>(mAction));
                 break;
         }
     }

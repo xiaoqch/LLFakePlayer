@@ -29,8 +29,10 @@ void debugLogNbt(CompoundTag const& tag);
 #define debugLogNbt(...) (void)0
 #endif // VERBOSE
 
+namespace std
+{
 template <>
-struct std::hash<mce::UUID>
+struct hash<mce::UUID>
 {
     constexpr size_t operator()(const mce::UUID& _Keyval) const noexcept
     {
@@ -43,6 +45,7 @@ struct std::hash<mce::UUID>
         return uuid_a ^ (0x1F1F1F1F * uuid_b);
     }
 };
+} // namespace std
 template <>
 struct std::equal_to<mce::UUID>
 {
