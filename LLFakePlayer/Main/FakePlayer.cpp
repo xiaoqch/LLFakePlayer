@@ -88,7 +88,7 @@ bool FakePlayer::login(BlockPos* bpos, class AutomaticID<class Dimension, int> d
     if (mLoggingIn || online)
         return false;
     if (!Global<Level>)
-        return;
+        return false;
     if (Global<Level>->getPlayer(mRealName))
     {
         logger.warn("Player with same name \"{}\" already online", mRealName);

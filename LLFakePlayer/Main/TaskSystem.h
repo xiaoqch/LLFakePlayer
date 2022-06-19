@@ -63,7 +63,7 @@ public:
             return static_cast<SimulatedPlayer*>(player);
         return nullptr;
     };
-    
+
     static int getNextId()
     {
         static int id = 0;
@@ -132,7 +132,8 @@ public:
     Task(Task const&) = delete;
 };
 
-class SyncTask: public Task {
+class SyncTask : public Task
+{
     enum class State : unsigned char
     {
         Starting,
@@ -323,7 +324,7 @@ public:
         }
         return true;
     }
-    
+
     SyncTask(ActorUniqueID actorId, CallbackFn callback, Actor& actor, bool syncPos = true, bool syncView = true)
         : Task(actorId, callback)
         , mNeedSyncPos(syncPos)
@@ -379,9 +380,9 @@ public:
             return waitRemove("Can't get navigation component");
         if (!naviComp->isDone() && !naviComp->isStuck(100))
             return;
-         else
-             DEBUGL("{}: done: {}, stuck: {}",
-                 CommandUtils::getActorName(sp), naviComp->isDone(), naviComp->isStuck(100));
+        else
+            DEBUGL("{}: done: {}, stuck: {}",
+                   CommandUtils::getActorName(sp), naviComp->isDone(), naviComp->isStuck(100));
 
 
         auto maxDist = naviComp->getMaxDistance(sp);
@@ -486,7 +487,7 @@ class UseTask : public Task
     int mCooldown = static_cast<int>(std::min(Config::DefaultMaxCooldownTicks, 10ull));
     int mSleepingTicks = 0;
     size_t mUseTimes = 0;
-    float mLastFishingAngle= 0.0f;
+    float mLastFishingAngle = 0.0f;
 
     virtual Type getType() const override
     {
@@ -505,7 +506,8 @@ class UseTask : public Task
     }
     virtual void tick() override
     {
-        if (mSleepingTicks) {
+        if (mSleepingTicks)
+        {
             mSleepingTicks--;
             return;
         }
@@ -514,8 +516,10 @@ class UseTask : public Task
         if (mWaitUsingDuration)
         {
             DEBUGW("using: {}/{}", sp.getItemUseDuration(), mWaitUsingDuration);
-            if (mWaitUsingDuration == 72000) {
-                if (mWaitUsingDuration - sp.getItemUseDuration() > 20) {
+            if (mWaitUsingDuration == 72000)
+            {
+                if (mWaitUsingDuration - sp.getItemUseDuration() > 20)
+                {
                     sp.releaseUsingItem();
                     mWaitUsingDuration = 0;
                     return;
@@ -543,7 +547,7 @@ class UseTask : public Task
             }
             if (mSlots.empty())
                 return waitRemove("{} has no item to use, used times: {}",
-                    CommandUtils::getActorName(sp), mUseTimes);
+                                  CommandUtils::getActorName(sp), mUseTimes);
         }
         auto slot = *mSlots.begin();
         auto& item = inventory.getItem(slot);
@@ -567,7 +571,8 @@ class UseTask : public Task
         {
             DEBUGL("{} is unusable", item.getName());
             auto hitResult = getBlockFromViewVectorEx(sp);
-            if (hitResult.isHit()||hitResult.isHitLiquid()) {
+            if (hitResult.isHit() || hitResult.isHitLiquid())
+            {
                 if (hitResult.isHitLiquid())
                     res = sp.simulateUseItemInSlotOnBlock(slot, hitResult.getLiquidPos(), (ScriptFacing)hitResult.getFacing(), dAccess<Vec3>(&hitResult, 96));
                 if (hitResult.isHit())
@@ -577,7 +582,7 @@ class UseTask : public Task
             else
             {
                 return waitRemove("{} can not use {}, used times: {}",
-                    CommandUtils::getActorName(sp), item.getName(), mUseTimes);
+                                  CommandUtils::getActorName(sp), item.getName(), mUseTimes);
             }
         }
         DEBUGL("{} use item in slot {}, result: {}, duration: {}, used times: {}",
@@ -591,7 +596,6 @@ class UseTask : public Task
         {
             return waitRemove("Can't use item, used times: {}", mUseTimes);
         }
-
     }
     virtual void stop()
     {
@@ -602,7 +606,7 @@ class UseTask : public Task
             sp->simulateStopMoving();
         }
     }
-    
+
     void tickFishing(SimulatedPlayer& sp, int slot)
     {
         DEBUGL("Using fishing rod");
@@ -686,11 +690,14 @@ public:
             auto fullName = name.find(":") == std::string::npos ? "minecraft:" + name : name;
             mItemNames.insert(fullName);
         }
-        if (mItemNames.empty()) {
+        if (mItemNames.empty())
+        {
             auto player = getPlayer();
-            if (player) {
+            if (player)
+            {
                 auto& item = player->getSelectedItem();
-                if (!item.isNull()) {
+                if (!item.isNull())
+                {
                     mItemNames.insert(item.getFullNameHash());
                 }
             }
@@ -715,7 +722,6 @@ class SleepTask : public Task
     Vec3 mLastViewVec = Vec3::ZERO;
 
 public:
-
     virtual void tick() override
     {
         auto naviComp = getNavigationComponent();
