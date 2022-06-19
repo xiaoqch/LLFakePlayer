@@ -10,6 +10,7 @@ public:
         Follow,
         Sleep,
         Use,
+        Sync,
         Custom,
         Cancel,
     };
@@ -21,8 +22,11 @@ private:
     std::string mTaskName;
     CommandPosition mPosition;
     Json::Value mJson;
-    bool mSync;
-    bool mOperator_isSet, mTarget_isSet, mPosition_isSet, mJson_isSet, mSync_isSet;
+    CommandItem mItem;
+    bool mSyncPosition, mSyncView;
+    bool mOperator_isSet, mTarget_isSet, mPosition_isSet, mJson_isSet, mItem_isSet;
+    bool mSyncPosition_isSet, mSyncView_isSet;
+    
     template <Action op>
     void executeAction(class CommandOrigin const& origin, class CommandOutput& output, SimulatedPlayer& sp) const {
         output.error("Unimplemented");
@@ -31,6 +35,9 @@ private:
 
     Task::CallbackFn delaySendMessage(class CommandOrigin const& origin, std::string const& msg = "") const;
 
+    template <Action... ops>
+    static CommandParameterData _registerAction(CommandRegistry& registry, char const* name);
+    
     virtual void execute(class CommandOrigin const& origin, class CommandOutput& output) const override;
 
 public:

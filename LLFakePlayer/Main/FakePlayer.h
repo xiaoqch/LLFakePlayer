@@ -25,6 +25,8 @@ class FakePlayer
     friend class FakePlayerManager;
     friend class FakePlayerStorage;
 
+    
+
 public:
     static bool mWaitingAs;
     static bool mLoggingIn;
@@ -72,9 +74,13 @@ public:
     {
         mAutoLogin = value;
     }
-    inline bool isOnline() const
+    inline bool shouldSaveData() const
     {
-        return getPlayer() != nullptr;
+        return mSaveData;
+    }
+    DECLSPEC_NOINLINE bool isOnline() const
+    {
+        return player != nullptr;
     }
     inline SimulatedPlayer* getPlayer() const
     {
@@ -87,10 +93,8 @@ public:
         }
         return nullptr;
     }
-    inline bool shouldSaveData() const
-    {
-        return mSaveData;
-    }
+    __declspec(property(get = isOnline)) bool online;
+    __declspec(property(get = getPlayer)) SimulatedPlayer* player;
 
     FPAPI std::unique_ptr<CompoundTag> getPlayerTag() const;
     FPAPI std::unique_ptr<CompoundTag> getStoragePlayerTag() const;

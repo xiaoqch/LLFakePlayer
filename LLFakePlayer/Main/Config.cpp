@@ -58,6 +58,7 @@ std::string serialize()
     SerializeVaule(DataBasePath);
     SerializeVaule(DefaultMaxCooldownTicks);
     SerializeVaule(AutoSleep);
+    SerializeVaule(MaxOnlinePlayers);
 
     return json.dump(4);
 }
@@ -73,6 +74,7 @@ bool deserialize(std::string const& jsonStr)
     DeserializeVaule(DataBasePath);
     DeserializeVaule(DefaultMaxCooldownTicks);
     DeserializeVaule(AutoSleep);
+    DeserializeVaule(MaxOnlinePlayers);
 
     return !needUpdate;
 }

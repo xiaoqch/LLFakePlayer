@@ -85,12 +85,27 @@ struct LoginHolder
 
 bool FakePlayer::login(BlockPos* bpos, class AutomaticID<class Dimension, int> dimId)
 {
-    if (mLoggingIn || isOnline())
+    if (mLoggingIn || online)
         return false;
+    if (!Global<Level>)
+        return;
     if (Global<Level>->getPlayer(mRealName))
     {
         logger.warn("Player with same name \"{}\" already online", mRealName);
         return false;
+    }
+    if (Config::MaxOnlineCount > 0)
+    {
+        int count = 0;
+        mManager->forEachFakePlayer([&count](std::string_view name, FakePlayer& fp) {
+            if (fp.online)
+                count++;
+        });
+        if (count >= Config::MaxOnlineCount)
+        {
+            logger.warn("Too many fake players online, cannot login \"{}\"", mRealName);
+            return false;
+        }
     }
     LoginHolder holder(this);
     auto player = SimulatedPlayerHelper::create(mRealName, bpos, dimId);
@@ -115,14 +130,14 @@ bool FakePlayer::login(BlockPos* bpos, class AutomaticID<class Dimension, int> d
 
 bool FakePlayer::logout(bool save)
 {
-    if (!isOnline())
+    if (!online)
         return false;
     if (save)
     {
         time(&mLastUpdateTime);
         FakePlayerManager::getManager().saveData(*this);
     }
-    getPlayer()->simulateDisconnect();
+    player->simulateDisconnect();
     mClientSubID = -1;
     return true;
 }
@@ -154,11 +169,11 @@ void FakePlayer::setClientSubId(unsigned char subId)
 
 std::unique_ptr<CompoundTag> FakePlayer::getPlayerTag() const
 {
-    if (!isOnline())
+    if (!online)
     {
         return getStoragePlayerTag();
     }
-    return CompoundTag::fromPlayer(getPlayer());
+    return CompoundTag::fromPlayer(player);
 }
 #include "FakePlayerStorage.h"
 std::unique_ptr<CompoundTag> FakePlayer::getStoragePlayerTag() const
@@ -168,7 +183,7 @@ std::unique_ptr<CompoundTag> FakePlayer::getStoragePlayerTag() const
 
 std::unique_ptr<CompoundTag> FakePlayer::getOnlinePlayerTag() const
 {
-    if (!isOnline())
+    if (!online)
         return {};
-    return CompoundTag::fromPlayer(getPlayer());
+    return CompoundTag::fromPlayer(player);
 }

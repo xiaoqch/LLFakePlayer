@@ -90,7 +90,7 @@ bool FakePlayerManager::savePlayers(bool onlineOnly)
     auto res = true;
     for (auto& [uuid, player] : mMap)
     {
-        if ((!onlineOnly || player->isOnline()) && !saveData(*player))
+        if ((!onlineOnly || player->online) && !saveData(*player))
             res = false;
     }
     return res;
@@ -100,7 +100,7 @@ bool FakePlayerManager::saveData(FakePlayer const& fakePlayer)
 {
     if (!fakePlayer.shouldSaveData())
         return false;
-    if (fakePlayer.isOnline())
+    if (fakePlayer.online)
         time(&fakePlayer.mLastUpdateTime);
     return mStorage->savePlayer(fakePlayer);
 }
@@ -222,7 +222,7 @@ bool FakePlayerManager::remove(std::string const& name)
     auto fakePlayer = tryGetFakePlayer(name);
     if (fakePlayer)
     {
-        if (fakePlayer->isOnline())
+        if (fakePlayer->online)
             fakePlayer->logout(false);
         auto uuid = fakePlayer->getUuid();
         auto serverId = fakePlayer->getServerId();
@@ -240,8 +240,8 @@ bool FakePlayerManager::remove(std::string const& name)
 SimulatedPlayer* FakePlayerManager::login(std::string const& name) const
 {
     auto fakePlayer = tryGetFakePlayer(name);
-    if (fakePlayer && !fakePlayer->isOnline() && fakePlayer->login())
-        return fakePlayer->getPlayer();
+    if (fakePlayer && !fakePlayer->online && fakePlayer->login())
+        return fakePlayer->player;
     return nullptr;
 }
 

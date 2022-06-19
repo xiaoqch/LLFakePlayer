@@ -38,7 +38,7 @@ void FakePlayerCommand::executeAction<FakePlayerCommand::Action::List>(CommandOr
     }
     auto result = std::accumulate(list.begin(), list.end(), std::string(), [](std::string const& str, FakePlayer* fp) {
         auto name = fp->isAutoLogin() ? fp->getRealName() + "<auto>" : fp->getRealName();
-        if (fp->isOnline())
+        if (fp->online)
             name = ColorHelper::green(name);
         if (str.empty())
             return str + name;
@@ -84,7 +84,7 @@ void FakePlayerCommand::executeAction<FakePlayerCommand::Action::Login>(CommandO
     auto fp = manager.tryGetFakePlayer(mName);
     if (!fp)
         return output.error("Fake player does not exist.");
-    if (fp->isOnline())
+    if (fp->online)
         return output.error("Fake player is already online.");
 
     if (hasPlayerOnline(fp->getRealName()))
@@ -101,7 +101,7 @@ void FakePlayerCommand::executeAction<FakePlayerCommand::Action::Logout>(Command
     auto fp = manager.tryGetFakePlayer(mName);
     if (!fp)
         return output.error("Fake player does not exist.");
-    if (!fp->isOnline())
+    if (!fp->online)
         return output.error("Fake player is not online.");
     if (!fp->logout())
         return output.error("Failed to logout fake player.");
@@ -254,46 +254,28 @@ void FakePlayerCommand::execute(CommandOrigin const& origin, CommandOutput& outp
     }
 }
 
+template <FakePlayerCommand::Action... ops>
+CommandParameterData FakePlayerCommand::_registerAction(CommandRegistry& registry, char const* name)
+{
+    registry.addEnum<Action>(name, {{magic_enum::lower_enum_name<ops>().data(), ops}...});
+    auto action = makeMandatory<CommandParameterDataType::ENUM>(&FakePlayerCommand::mAction, "action", name);
+    action.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
+    return action;
+}
+
 
 void FakePlayerCommand::setup(CommandRegistry& registry)
 {
     registry.registerCommand(FULL_COMMAND_NAME, "FakePlayer For LiteLoader", CommandPermissionLevel::GameMasters, {(CommandFlagValue)0}, {(CommandFlagValue)0x80});
     if (!Config::CommandAlias.empty())
         registry.registerAlias(FULL_COMMAND_NAME, Config::CommandAlias);
-    registry.addEnum<Action>("FpCreateAction",
-                             {
-                                 {"add", Action::Add},
-                             });
-    registry.addEnum<Action>("FpOtherAction",
-                             {
-                                 {"remove", Action::Remove},
-                                 {"login", Action::Login},
-                                 {"logout", Action::Logout},
-#ifdef COMMAND_AS_ACTION
-                                 {"as", Action::As},
-#endif // COMMAND_AS_ACTION
-                             });
-    registry.addEnum<Action>("FpManageAction",
-                             {
-                                 {"list", Action::List},
-                                 {"help", Action::Help},
-                             });
-    registry.addEnum<Action>("FpImportAction",
-                             {
-                                 {"import", Action::Import},
-                             });
-    registry.addEnum<Action>("FpAutoLoginAction",
-                             {
-                                 {"autologin", Action::AutoLogin},
-                             });
-    auto actionCreate = makeMandatory<CommandParameterDataType::ENUM>(&FakePlayerCommand::mAction, "action", "FpCreateAction");
-    auto actionWithName = makeMandatory<CommandParameterDataType::ENUM>(&FakePlayerCommand::mAction, "action", "FpOtherAction");
-    auto action = makeMandatory<CommandParameterDataType::ENUM>(&FakePlayerCommand::mAction, "action", "FpManageAction");
-    auto actionImport = makeMandatory<CommandParameterDataType::ENUM>(&FakePlayerCommand::mAction, "action", "FpImportAction");
-    auto actionAutoLogin = makeMandatory<CommandParameterDataType::ENUM>(&FakePlayerCommand::mAction, "action", "FpAutoLoginAction");
-    actionCreate.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
-    actionWithName.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
-    action.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
+    
+    auto actionAdd = _registerAction<Action::Add>(registry, "FpAddAction");
+    auto actionOther = _registerAction<Action::Remove, Action::Login, Action::Logout>(registry, "FpOtherAction");
+    auto actionManage = _registerAction<Action::List, Action::Help>(registry, "FpManageAction");
+    auto actionImport = _registerAction<Action::Import>(registry, "FpImportAction");
+    auto actionAutoLogin = _registerAction<Action::AutoLogin>(registry, "FpAutoLoginAction");
+
 
     auto nameSoftEnum = registry.addSoftEnum(FAKEPLAYER_LIST_SOFT_ENUM_NAME, FakePlayerManager::getManager().getSortedNames());
     auto nameSoftEnumParam = makeMandatory<CommandParameterDataType::SOFT_ENUM>(&FakePlayerCommand::mName, "name", FAKEPLAYER_LIST_SOFT_ENUM_NAME, &FakePlayerCommand::mName_isSet);
@@ -303,9 +285,9 @@ void FakePlayerCommand::setup(CommandRegistry& registry)
     //auto posParam = makeOptional(&FakePlayerCommand::mPosition, "position", &FakePlayerCommand::mPosition_isSet);
     //auto dimidParam = makeOptional(&FakePlayerCommand::mDimensionId, "dimension", &FakePlayerCommand::mDimensionId_isSet);
 
-    registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, action);
-    registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionWithName, nameSoftEnumParam);
-    registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionCreate, nameParam);
+    registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionManage);
+    registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionOther, nameSoftEnumParam);
+    registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionAdd, nameParam);
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionImport, nameOptional);
     registry.registerOverload<FakePlayerCommand>(FULL_COMMAND_NAME, actionAutoLogin, nameOptional, autoLoginOpt);
 }

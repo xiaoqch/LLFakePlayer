@@ -2,6 +2,8 @@
 #include "CommandHelper.h"
 #include "TaskCommand.h"
 #include "Header/FakePlayerManager.h"
+#include <MC/ItemRegistry.hpp>
+#include <MC/Item.hpp>
 
 #define FULL_COMMAND_NAME "llfakeplayertask"
 using Action = TaskCommand::Action;
@@ -53,18 +55,35 @@ void TaskCommand::executeAction<Action::Use>(CommandOrigin const& origin, Comman
     if (tasks.size())
         return output.success("Cancel exists task");
     std::set<std::string> names;
-    bool sync = mSync_isSet ? mSync : true;
-    auto player = origin.getPlayer();
-    if (!player)
-        sync = false;
-    if (sync)
+    if (mItem_isSet)
     {
-        auto& selectedItem = player->getSelectedItem();
-        if (!selectedItem.isNull())
-            names.insert(selectedItem.getTypeName());
+        auto id = mItem.getId();
+        auto item = ItemRegistry::getItem(id);
+        if (item)
+            names.insert(item.get()->getFullNameHash().getString());
     }
-    SyncHelper syncHelper = sync ? SyncHelper(*player) : SyncHelper();
-    auto task = std::make_unique<UseTask>(sp.getUniqueID(), delaySendMessage(origin), names, syncHelper);
+    auto task = std::make_unique<UseTask>(sp.getUniqueID(), delaySendMessage(origin), names);
+    taskSystem.addTask(std::move(task));
+    output.success("Use task added");
+}
+
+template<>
+void TaskCommand::executeAction<Action::Sync>(CommandOrigin const& origin, CommandOutput& output, SimulatedPlayer& sp) const
+{
+    auto& taskSystem = TaskSystem::getInstance();
+    auto tasks = taskSystem.findTasks(sp, Task::Type::Sync);
+    for (auto& task : tasks)
+    {
+        task->waitRemove("Sync task for {} auto cancel by command", sp.getName());
+    }
+    if (tasks.size())
+        return output.success("Cancel exists task");
+    bool syncPos = mSyncPosition_isSet ? mSyncPosition : true;
+    bool syncView = mSyncView_isSet ? mSyncView : true;
+    auto actor = origin.getEntity();
+    if (!actor)
+        return output.error("Sync command action must be executed by entity or player");
+    auto task = std::make_unique<SyncTask>(sp.getUniqueID(), delaySendMessage(origin), *actor, syncPos, syncView);
     taskSystem.addTask(std::move(task));
     output.success("Use task added");
 }
@@ -178,49 +197,44 @@ void TaskCommand::execute(CommandOrigin const& origin, CommandOutput& output) co
                 break;
         }
     }
-} 
-        
+}
+
+template <Action... ops>
+inline CommandParameterData TaskCommand::_registerAction(CommandRegistry& registry, char const* name)
+{
+    registry.addEnum<Action>(name, {{magic_enum::lower_enum_name<ops>().data(), ops}...});
+    auto action = makeMandatory<CommandParameterDataType::ENUM>(&TaskCommand::mAction, "action", name);
+    action.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
+    return action;
+}
+
 
 void TaskCommand::setup(CommandRegistry& registry)
 {
     registry.registerCommand(FULL_COMMAND_NAME, "FakePlayer Task", CommandPermissionLevel::GameMasters, {(CommandFlagValue)0}, {(CommandFlagValue)0x80});
     if (!Config::TaskCommandAlias.empty())
         registry.registerAlias(FULL_COMMAND_NAME, Config::TaskCommandAlias);
-    registry.addEnum<Action>("FptFollowAction",
-                             {
-                                 {"follow", Action::Follow},
-                             });
-    registry.addEnum<Action>("FptSleepAction",
-                             {
-                                 {"sleep", Action::Sleep},
-                                 {"list", Action::List},
-                             });
-    registry.addEnum<Action>("FptCustomAction",
-                             {
-                                 {"custom", Action::Custom},
-                                 {"cancel", Action::Cancel},
-                             });
-    registry.addEnum<Action>("FptUseAction",
-                             {
-                                 {"use", Action::Use},
-                             });
-
-    auto actionFollow = makeMandatory<CommandParameterDataType::ENUM>(&TaskCommand::mAction, "mAction", "FptFollowAction");
-    auto actionSleep = makeMandatory<CommandParameterDataType::ENUM>(&TaskCommand::mAction, "mAction", "FptSleepAction");
-    auto actionCustom = makeMandatory<CommandParameterDataType::ENUM>(&TaskCommand::mAction, "mAction", "FptCustomAction");
-    auto actionUse = makeMandatory<CommandParameterDataType::ENUM>(&TaskCommand::mAction, "mAction", "FptUseAction");
-    actionFollow.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
-    actionSleep.addOptions(CommandParameterOption::EnumAutocompleteExpansion);
+    
+    auto actionFollow = _registerAction<Action::Follow>(registry, "FptFollowAction");
+    auto actionNoParam = _registerAction<Action::Sleep, Action::List>(registry, "FptActionNoParam");
+    auto actionCustom = _registerAction<Action::Custom>(registry, "FptCustomAction");
+    auto actionCancel = _registerAction<Action::Cancel>(registry, "FptCancelAction");
+    auto actionUse = _registerAction<Action::Use>(registry, "FptUseAction");
+    auto actionSync = _registerAction<Action::Sync>(registry, "FptSyncAction");
 
     auto opMand = makeMandatory(&TaskCommand::mOperator, "operator", &TaskCommand::mOperator_isSet);
     auto taskMand = makeMandatory(&TaskCommand::mTaskName, "task");
     auto targetOpt = makeOptional(&TaskCommand::mTarget, "target", &TaskCommand::mTarget_isSet);
     auto posOpt = makeOptional(&TaskCommand::mPosition, "position", &TaskCommand::mPosition_isSet);
-    auto syncOpt = makeOptional(&TaskCommand::mSync, "sync", &TaskCommand::mSync_isSet);
-    auto jsonOpt = makeOptional(&TaskCommand::mJson, "dimension", &TaskCommand::mJson_isSet);
+    auto itemOpt = makeOptional(&TaskCommand::mItem, "item", &TaskCommand::mItem_isSet);
+    auto syncPosOpt = makeOptional(&TaskCommand::mSyncPosition, "forPos", &TaskCommand::mSyncPosition_isSet);
+    auto syncViewOpt = makeOptional(&TaskCommand::mSyncView, "forView", &TaskCommand::mSyncView_isSet);
+    auto jsonOpt = makeOptional(&TaskCommand::mJson, "data", &TaskCommand::mJson_isSet);
 
     registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionFollow, targetOpt);
-    registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionSleep, posOpt);
-    registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionUse, syncOpt);
+    registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionNoParam);
+    registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionUse, itemOpt);
+    registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionSync, syncPosOpt, syncViewOpt);
     registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionCustom, taskMand, jsonOpt);
+    registry.registerOverload<TaskCommand>(FULL_COMMAND_NAME, opMand, actionCancel, taskMand);
 }

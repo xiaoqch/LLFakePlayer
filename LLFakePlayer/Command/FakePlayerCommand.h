@@ -27,7 +27,10 @@ class FakePlayerCommand : public Command
     bool mName_isSet, mPosition_isSet, mDimensionId_isSet, mAutoLogin_isSet;
     template <Action op>
     void executeAction(class CommandOrigin const& origin, class CommandOutput& output) const = delete;
-    
+
+    template <Action... ops>
+    static CommandParameterData _registerAction(CommandRegistry& registry, char const* name);
+
     virtual void execute(class CommandOrigin const& origin, class CommandOutput& output) const override;
 
 public:

@@ -65,12 +65,13 @@ llfakeplayertask sp cancel name - cancel task
 namespace Config
 {
 inline std::string CommandAlias = "fp";
-inline std::string TaskCommandAlias = "fpt";
+inline std::string TaskCommandAlias = "fptask";
 inline unsigned int ChunkRadius = 9;
 inline bool DebugMode = false;
 inline std::string DataBasePath = DEFAULT_DATABASE_PATH;
 inline size_t DefaultMaxCooldownTicks = 10;
 inline bool AutoSleep = true;
+inline int MaxOnlinePlayers = -1;
 
 bool saveConfig();
 bool initConfig();

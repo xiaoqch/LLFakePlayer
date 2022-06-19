@@ -96,4 +96,17 @@ inline SimulatedPlayer* tryGetSimulatedPlayer(Actor* actor)
         return static_cast<SimulatedPlayer*>(actor);
     return nullptr;
 }
+inline int getSimulatedPlayerCount()
+{
+    auto level = Global<Level>;
+    if (!level)
+        return 0;
+    int count = 0;
+    level->forEachPlayer([&count](Player const& pl) {
+        if (pl.isSimulatedPlayer())
+            count++;
+        return true;
+    });
+    return count;
+}
 }; // namespace SimulatedPlayerHelper

@@ -30,7 +30,7 @@ std::string StateToJson(FakePlayerState const& state, nlohmann::json& json)
 }
 FakePlayerState StateFromFakePlayer(FakePlayer const& fp)
 {
-    return {fp.getRealName(), fp.getXuid(), fp.getUuid(), "", fp.isOnline(), fp.isAutoLogin(), fp.getLastUpdateTime()};
+    return {fp.getRealName(), fp.getXuid(), fp.getUuid(), "", fp.online, fp.isAutoLogin(), fp.getLastUpdateTime()};
 }
 
 
@@ -57,8 +57,8 @@ std::vector<SimulatedPlayer*> getOnlineList()
     std::vector<SimulatedPlayer*> list;
     for (auto& fp : FakePlayerManager::getManager().getFakePlayerList())
     {
-        if (fp->isOnline())
-            list.emplace_back(fp->getPlayer());
+        if (fp->online)
+            list.emplace_back(fp->player);
     }
     return list;
 }
@@ -133,7 +133,7 @@ SimulatedPlayer* createAt(std::string const& name, std::pair<BlockPos, int> pos)
     auto fp = FakePlayerManager::getManager().create(name);
     if (fp && fp->login(&pos.first, pos.second))
     {
-        return fp->getPlayer();
+        return fp->player;
     }
     return nullptr;
 }
@@ -153,7 +153,7 @@ std::vector<std::string> loginAll()
     DEBUGL(__FUNCTION__);
     std::vector<std::string> list;
     FakePlayerManager::getManager().forEachFakePlayer([&](std::string_view name, FakePlayer& fp) {
-        if (!fp.isOnline())
+        if (!fp.online)
             if (fp.login())
                 list.emplace_back(name);
     });
@@ -164,7 +164,7 @@ std::vector<std::string> logoutAll()
     DEBUGL(__FUNCTION__);
     std::vector<std::string> list;
     FakePlayerManager::getManager().forEachFakePlayer([&](std::string_view name, FakePlayer& fp) {
-        if (fp.isOnline())
+        if (fp.online)
             if (fp.logout())
                 list.emplace_back(name);
     });

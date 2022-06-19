@@ -113,7 +113,7 @@ bool FakePlayerStorage::removePlayer(FakePlayer const& fakePlayer)
 bool FakePlayerStorage::savePlayer(FakePlayer const& fakePlayer)
 {
     auto res = savePlayerInfo(fakePlayer);
-    if (fakePlayer.isOnline())
+    if (fakePlayer.online)
         res &= savePlayerData(fakePlayer);
     return res;
 }
