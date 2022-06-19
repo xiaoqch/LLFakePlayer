@@ -71,7 +71,7 @@ inline bool DebugMode = false;
 inline std::string DataBasePath = DEFAULT_DATABASE_PATH;
 inline size_t DefaultMaxCooldownTicks = 10;
 inline bool AutoSleep = true;
-inline int MaxOnlinePlayers = -1;
+inline int MaxOnlineCount = -1;
 
 bool saveConfig();
 bool initConfig();
