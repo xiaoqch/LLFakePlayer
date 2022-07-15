@@ -43,11 +43,13 @@ struct LowerString
 namespace magic_enum
 {
 template <auto V>
-[[nodiscard]] constexpr auto lower_enum_name() noexcept -> detail::enable_if_enum_t<decltype(V), string_view>
+[[nodiscard]] FORCEINLINE constexpr auto lower_enum_name() noexcept -> detail::enable_if_enum_t<decltype(V), string_view>
 {
     constexpr auto name = enum_name(V);
     constexpr auto data = name.data();
     constexpr auto size = name.size();
-    return LowerString<size>{data};
+    constexpr auto str = LowerString<size>{data};
+    constexpr std::string_view view = str;
+    return view;
 }
 } // namespace magic_enum

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Main/Version.h"
 
 #include <LoggerAPI.h>

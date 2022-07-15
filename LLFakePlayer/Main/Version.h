@@ -10,13 +10,13 @@
 #define PLUGIN_AUTHOR               "xiaoqch"
 #define PLUGIN_VERSION_MAJOR        0
 #define PLUGIN_VERSION_MINOR        0
-#define PLUGIN_VERSION_REVISION     1
+#define PLUGIN_VERSION_REVISION     2
 #define PLUGIN_VERSION_BUILD        0
 #define PLUGIN_VERSION_STATUS       PLUGIN_VERSION_DEV
 
-#define TARGET_BDS_PROTOCOL_VERSION 503
+#define TARGET_BDS_PROTOCOL_VERSION 537
 // used by github actions(TODO)
-#define TARGET_BDS_VERSION          1.18.33.02
+#define TARGET_BDS_VERSION          1.19.10.03
 
 
 #define PLUGIN_IS_BETA              PLUGIN_VERSION_STATUS <= PLUGIN_VERSION_BETA || DEBUG

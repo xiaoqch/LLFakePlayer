@@ -24,12 +24,12 @@ public:
 // ServerPlayer::isPlayerInitialized = mIsInitialSpawnDone? && mLoading && mDimensionState !=0 && mLocalPlayerInitialized
 namespace PlayerOffset
 {
-constexpr size_t mIsInitialSpawnDone = 4281;             // ServerPlayer::isPlayerInitialized
-constexpr size_t mLoading = 9352;                        // ServerPlayer::isPlayerInitialized
-constexpr size_t mLocalPlayerInitialized = 9354;         // ServerPlayer::setLocalPlayerAsInitialized
-constexpr size_t mBlockRespawnUntilClientMessage = 4076; // Player::setBlockRespawnUntilClientMessage
-constexpr size_t mNetworkChunkPublisher = 8888;          // ServerPlayer::_updateChunkPublisherView
-constexpr size_t mSimulatedOldY = 9824;                  // SimulatedPlayer::aiStep
+constexpr size_t mIsInitialSpawnDone = 4689;             // ServerPlayer::isPlayerInitialized
+constexpr size_t mLoading = 9760;                        // ServerPlayer::isPlayerInitialized
+constexpr size_t mLocalPlayerInitialized = 9762;         // ServerPlayer::setLocalPlayerAsInitialized
+constexpr size_t mBlockRespawnUntilClientMessage = 4484; // Player::setBlockRespawnUntilClientMessage
+constexpr size_t mNetworkChunkPublisher = 9296;          // ServerPlayer::_updateChunkPublisherView
+constexpr size_t mSimulatedOldY = 10240;                  // SimulatedPlayer::aiStep
 // constexpr size_t mServerHasMovementAuthority = 8488;     // ??
 // constexpr size_t mGameMode = 4680;                       // ??
 } // namespace PlayerOffset
@@ -314,13 +314,19 @@ void handlePacket(SimulatedPlayer* sp, Packet* packet)
             break;
     }
 }
+
+inline bool isFakeClientId(NetworkIdentifier const& nid)
+{
+    static auto cachedHash = FakePlayer::mNetworkID.getHash();
+    return nid.isUnassigned() && nid.getHash() == cachedHash;
+}
 } // namespace FakeClient
 
 // clientSubId is necessary to identify SimulatedPlayer because they have the same network ID
 TInstanceHook(void, "?send@NetworkHandler@@QEAAXAEBVNetworkIdentifier@@AEBVPacket@@E@Z",
               NetworkHandler, NetworkIdentifier const& networkID, Packet const& packet, unsigned char clientSubID)
 {
-    if (networkID.getHash() == FakePlayer::mNetworkID.getHash())
+    if (FakeClient::isFakeClientId(networkID))
     {
         try
         {
@@ -362,7 +368,7 @@ TClasslessInstanceHook(void, "?sendToClients@LoopbackPacketSender@@UEAAXAEBV?$ve
 
     for (auto const& client : clients)
     {
-        if (client.mNetworkId.isUnassigned() && client.mNetworkId.getHash() == FakePlayer::mNetworkID.getHash())
+        if (FakeClient::isFakeClientId(client.mNetworkId))
         {
             try
             {
@@ -402,7 +408,7 @@ TInstanceHook(void, "?_sendInternal@NetworkHandler@@AEAAXAEBVNetworkIdentifier@@
               NetworkHandler, NetworkIdentifier& nid, class Packet& pkt, std::string const& data)
 {
     // fix simulated player sub id
-    if (nid.getHash() == FakePlayer::mNetworkID.getHash())
+    if (FakeClient::isFakeClientId(nid))
     {
         return original(this, *playerNid, pkt, data);
         // ASSERT(false);

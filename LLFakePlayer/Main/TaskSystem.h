@@ -2,6 +2,7 @@
 #include <MC/SimulatedPlayer.hpp>
 #include <MC/Level.hpp>
 #include <MC/NavigationComponent.hpp>
+#include <MC/ScriptModuleMinecraft.hpp>
 #include <MC/BlockSource.hpp>
 #include <MC/CommandUtils.hpp>
 #include <MC/BlockActor.hpp>
@@ -574,9 +575,9 @@ class UseTask : public Task
             if (hitResult.isHit() || hitResult.isHitLiquid())
             {
                 if (hitResult.isHitLiquid())
-                    res = sp.simulateUseItemInSlotOnBlock(slot, hitResult.getLiquidPos(), (ScriptFacing)hitResult.getFacing(), dAccess<Vec3>(&hitResult, 96));
+                    res = sp.simulateUseItemInSlotOnBlock(slot, hitResult.getLiquidPos(), (ScriptModuleMinecraft::ScriptFacing)hitResult.getFacing(), dAccess<Vec3>(&hitResult, 96));
                 if (hitResult.isHit())
-                    res = res || sp.simulateUseItemInSlotOnBlock(slot, hitResult.getBlockPos(), (ScriptFacing)hitResult.getFacing(), hitResult.getPos());
+                    res = res || sp.simulateUseItemInSlotOnBlock(slot, hitResult.getBlockPos(), (ScriptModuleMinecraft::ScriptFacing)hitResult.getFacing(), hitResult.getPos());
                 DEBUGL("hitResult: isLiquid: {}, isHit: {}, pos: {}, facing: {}, liquidPos: {}, blockPos: {}", hitResult.isHitLiquid(), hitResult.isHit(), hitResult.getPos().toString(), hitResult.getFacing(), hitResult.getLiquidPos().toString(), hitResult.getBlockPos().toString());
             }
             else

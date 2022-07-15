@@ -393,9 +393,7 @@ TInstanceHook(void, "?savePlayers@Level@@UEAAXXZ", Level)
     }
 }
 
-#include <MC/DedicatedServer.hpp>
-TInstanceHook(bool, "?stop@DedicatedServer@@UEAA_NXZ",
-              DedicatedServer)
+TClasslessInstanceHook(bool, "?stop@DedicatedServer@@UEAA_NXZ")
 {
     FakePlayerManager::getManager().savePlayers(false);
     return original(this);

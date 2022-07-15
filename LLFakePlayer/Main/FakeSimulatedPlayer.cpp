@@ -2,8 +2,8 @@
 #include <MC/SimulatedPlayer.hpp>
 
 // Fake SimulatedPlayer Structure
-constexpr size_t ServerPlayerSize = 9584;
-constexpr size_t SimulatedPlayerSize = 9832;
+constexpr size_t ServerPlayerSize = 10000;
+constexpr size_t SimulatedPlayerSize = 10280;
 
 using _QWORD = unsigned __int64;
 using _DWORD = unsigned int;
@@ -170,6 +170,7 @@ public:
     PlayerMovementSettings mMovementSettings = {}; // 9720
     float mOldY = -FLT_MAX;                        // 9824 aiStep
     float mInputSpeed;                             // 9828 _getInputSpeed
+    std::string mXUID;
 
 #ifdef DEBUG
     inline void breakIfStateChanged()

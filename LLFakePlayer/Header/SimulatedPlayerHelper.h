@@ -6,6 +6,7 @@
 #include <MC/StackResultStorageEntity.hpp>
 #include <MC/OwnerStorageEntity.hpp>
 
+#define BDS_VER 11910
 
 inline class SimulatedPlayer* getSimulatedPlayerByUuid(class mce::UUID const& a0)
 {
